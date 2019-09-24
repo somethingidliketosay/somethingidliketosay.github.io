@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-4500061645003550",
+            enable_page_level_ads: true
+          });
+        </script>
+                <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111761861-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-111761861-1');
+        </script>
+        <title>The Basics of Homology Theory</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+        <link rel="stylesheet" href="/assets/css/main.css" />
+        <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+        <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<link rel="alternate" type="application/rss+xml" title="mcneela.github.io RSS Feed" href="/feed.xml" />
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+    </head>
+    <body>
+    <!-- Wrapper -->
+        <div id="wrapper">
+
+            <!-- Header -->
+            <!-- Header -->
+<header id="header">
+    <h1><a href="/index.html">Daniel McNeela</a></h1>
+    <nav class="links">
+        <ul>
+            <li><a href="/about.html">About Me</a></li>
+            <li><a href="/resume/website_resume.pdf">Resume</a></li>
+            <li><a href="/portfolio.html">Portfolio</a></li>
+            <li><a href="/machinelearning.html">Machine Learning</a></li>
+            <li><a href="/math.html">Mathematics</a></li>
+            <!-- <li><a href="/bioinfo.html">Bioinformatics</a></li> -->
+            <li><a href="/consulting.html">Consulting</a></li>
+            <li><a href="/books.html">Books</a></li>
+            <!-- <li><a href="/literature.html">Literature</a></li> -->
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="/search/">
+                    <input type="text" name="q" placeholder="Search"/>
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+
+            <!-- Menu -->
+            <section id="menu">
+    <!-- Search -->
+        <section>
+            <form class="search" method="get" action="#">
+                <input type="text" name="query" placeholder="Search" />
+            </form>
+        </section>
+
+    <!-- Links -->
+        <section>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <h3>Home</h3>
+                        <p>Return to the homepage</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="resume/website_resume.pdf">
+                        <h3>Resume</h3>
+                        <p>PDF version of my resume</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="portfolio.html">
+                        <h3>Portfolio</h3>
+                        <p>My coding portfolio</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="math.html">
+                        <h3>Mathematics</h3>
+                        <p>Posts about mathematics</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="machinelearning.html">
+                        <h3>Machine Learning</h3>
+                        <p>Posts about machine learning</p>
+                    </a>
+               </li>
+			   <!--
+               <li>
+                   <a href="literature.html">
+                       <h3>Literature</h3>
+                       <p>My reading feed</p>
+                    </a>
+               </li>
+			   -->
+            </ul>
+        </section>
+</section>
+
+
+
+                <!-- Main -->
+            <div id="main">
+
+            <h1>The Basics of Homology Theory</h1>
+Algebraic topology is a field that seeks to establish 
+correspondences between algebraic structures and topological
+characteristics. It then uses results from algebra to infer
+and uncover results about topology. It's a pretty powerful method.
+</br></br>
+Roughly speaking, AT provides two different frameworks for
+characterizing topological spaces. These are <i>homotopy</i>
+and <i>homology</i>. In this post, we'll start to take a look
+at homology, which differs from homotopy in that it's less
+powerful in some senses, but significantly easier to work with
+and compute which endows it with a different sort of power.
+</br></br>
+<h2>Some Definitions to Start</h2>
+<b><u>Definition</u></b> Say we're working in $\mathbb{R}^n$. The <i>$p$-simplex</i>, defined for $p \leq n$, is
+$$\Delta_p := \left\{x = \sum_{i=0}^p \lambda_i e_i \mid \sum_{i=0}^p \lambda_i\ = 1, \lambda_i \geq 0\right\}$$
+$\Delta_p$ is a generalization of the triangle to $p$ dimensions. Now, there are actually two types of homology
+which have developed in the annals of mathematics.
+The first of these is <i>singular homology</i>, which concerns
+itself with the study of topological spaces via the mapping of
+simplices into these spaces. The other type is called
+<i>Cech homology</i> which handles the study of topology via
+the approximation of topological spaces with spaces of a certain
+class, namely those which admit a triangulation. Of these two
+branches of homology, singular is by far the more prevalent in
+the literature and is the one we'll delve into here.
+</br></br>
+Given a triangular polytope like we've defined in $\Delta_p$,
+one operation we might like to consider is using that region
+as a way to sort of define regions of interest around not just
+basis vectors, but any arbitrary collection of vectors in the space. Given such a set $\{v_0, \ldots, v_p\}$ we can denote
+by $[v_0, \ldots, v_p]$ the mapping of $\Delta_p \to \mathbb{R}^n$ defined by
+$$\sum_{i=0}^p \lambda_i e_i \to \sum_{i=0}^p \lambda_i v_i$$
+What this gives us from an intuitive perspective is the simplex
+expanded or shrunken to cover the span of the $v_i$. One nice
+property of this map is that its image is convex. We call the
+resulting simplex the <i>affine p-simplex</i>, and we sometimes
+refer to the $\lambda_i$ in this context as <i>barycentric coordinates</i>.
+</br></br>
+In addition to mapping between simplices and sets of vectors,
+we'd like to define a way to map between a $p$-simplex and a
+($p + 1$)-simplex and vice versa. The mapping from
+$p$ to $p + 1$ is called the $i$th face map and is notated
+as
+$$F_i^{p+1} : \Delta_p \to \Delta_{p + 1}$$
+It is formed by deleting the $i$th vertex in dimension
+$p + 1$. To notate this, we can write $[e_0, \ldots, \hat{e_i}
+, \ldots, e_{p+1}]$ where the hat indicates that $e_i$ is
+omitted. This face map is so named because it embeds the
+$p$-simplex in the $p+1$-simplex as the face opposite $e_i$, the
+vertex that's being deleted.
+</br></br>
+<b><u>Definition</u></b> For a topological space $X$, a <i>
+singular $p$-simplex</i> of $X$ is simply a continuous function
+$\sigma_p : \Delta_p \to X$.
+</br></br>
+<div align="middle">
+	<img src="/images/singular2simplex.png"></img>
+	<p>The singular 2-simplex, mapping from the standard 2-simplex to $X$.</p>
+</div>
+Basically, our goal in defining the singular $p$-simplices is
+to provide a sort of "basis" for the triangulation of an 
+arbitrary topological space. In this way, the singular $p$-simplex gives us a way to cover some patch of $X$ with 
+a triangle-like region. Accordingly, we can define a group
+which in some sense acts like a vector space of these triangular
+basis regions. By allowing the linear combination of maps on 
+these elements, we can give entire triangulations of the space
+$X$. 
+</br></br>
+<b><u>Definition</u></b> The <i>singular p-chain group
+$\Delta_p(X)$</i> is the free abelian group that's generated by the singular $p$-simplices.
+</br></br>
+In more concrete terms, the elements of $\Delta_p(X)$ are called
+$p$-chains and are simply linear combinations
+$$c = \sum_\sigma n_\sigma \sigma$$ of $p$-simplices with
+coefficients $n_\sigma$ coming from some ring (usually the
+integers).
+</br></br>
+We can recover how the singular $p$-simplex maps the faces of
+$\Delta_p$ to $X$ by simply composing the map $\sigma$ with the
+face map $F_i^p$. This is called the <i>ith face of $\sigma$</i>
+and is written
+$$\sigma^{(i)} = \sigma \circ F_i^p$$
+
+For a given singular $p$-simplex $\sigma$, we can defined a $(p-1)$-chain that gives the <i>boundary</i> of $\sigma$ as
+$$\partial_p \sigma = \sum_{i=0}^p (-1)^i \sigma_p^{(i)}$$
+
+The boundary operator extends to chains in the natural way, by distributing over addition, $\partial_p c = \partial_p (\sum_\sigma n_\sigma \sigma) = \sum_\sigma n_\sigma \partial_p
+\sigma$. This law, in fact, makes $\partial_p$ into a 
+homomorphism of groups
+$$\partial_p : \Delta_p(X) \to \Delta_{p-1}(X)$$ 
+Now, we introduce a key fact about the boundary operator that
+will allow us to define homology groups. You should be well
+aware of the saying "the enemy of my enemy is my friend".
+Well, in algebraic topology boundaries are our enemies and
+we have a similar statement, "the boundary of my boundary is
+a loser (zero)". In other words, for any $\sigma$,
+$$\partial_p(\partial_{p + 1} \sigma) = 0$$
+I'll skip the proof for this because it's just a really nasty
+rearrangement of a complicated sum, but if you're truly
+interested you can find it in pretty much any algebraic 
+topology textbook.
+</br></br>
+We call $im(\partial_{p+1}) = B_{p}(X)$ the
+<i>boundary group</i> and $ker(\partial_p) = Z_p(X)$ the
+<i>cycle group</i>. 
+Note that the above identity implies that $im(\partial_{p + 1})$ is a subgroup of $ker(\partial_p)$ which is equivalent
+to saying $B_p(C) \leq Z_p(C)$. 
+</br></br>
+<h2>The Homology Group</h2>
+We define the $p$th <i>homology group</i> as the quotient
+$$H_p(X) := Z_p(X) / B_p(X)$$
+In other words, this is the group of cycles modded out by
+the group of boundaries. To give a rough intuition, the
+rank of $H_p(X)$ tells us the number of $p$-dimensional
+"holes" contained in $X$. You can think about it as follows.
+If each cycle in $X$ is equivalent to some boundary, then
+those boundaries have no "interior" excisions. However, if a
+hole does exist, then there will be some discrepancy between
+boundaries and cycles, and the number of such discrepancies
+(holes) will be given by the rank of $H_p(X)$. 
+
+
+            </div>
+
+            
+
+        </div>
+
+		<!-- Scripts -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/skel.min.js"></script>
+        <script src="assets/js/util.js"></script>
+        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <script src="assets/js/main.js"></script>
+        <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+        <!-- <script type="text/javascript" async src="path-to-mathjax/MathJax.js?config=TeX-AMS_CHTML"></script> -->
+    </body>
+</html>

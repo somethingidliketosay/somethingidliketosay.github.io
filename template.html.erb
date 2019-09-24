@@ -1,0 +1,14 @@
+---
+layout: home_page
+---
+
+<div class="currently-reading">
+    <h1>Currently Reading</h1>
+    
+    <% current_titles.each do |title| %>
+        <h2><%= title %></h2>
+    <% end %>
+    <% current_imgs.each do |img_url| %>
+        <img src="<%= img_url %>" ></img>
+    <% end %>
+

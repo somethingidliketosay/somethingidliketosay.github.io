@@ -1,0 +1,70 @@
+---
+title: A Primer on Gaussian Discriminant Analysis
+categories: machine_learning
+layout: home_page 
+preview_img: images/deep_neural_network.png
+excerpt: A discriminative model for classification.
+---
+
+<h1 align="center">Gaussian Discriminant Analysis</h1>
+We begin with a definition. Consider the following general classification problem: we are given a 
+set of points $\{x_1, \ldots, x_N\} \in \mathbb{R}^d$. We seek to assign each of these to one of
+$K$ possible classes $C_k$. Let $\delta(x): \mathbb{R}^d \to \{1, \ldots, K\}$
+be our <i>discriminant function</i> which for a given input $x$ computes an assignment $k$ of $x$ to
+one of the $K$ classes. The model we will define provides a convenient and intuitive assignment rule
+for $\delta$. We define
+    $$\delta(x) := \max_k p(C_k|x)$$
+One common method for arriving at
+a posterior distribution $p(C_k|x)$ is to make an assumption about (or choose a concrete PDF for) the
+class-conditional densities $p(x|C_k)$ and then apply Bayes' Rule to infer the posterior. 
+In order to concretize our presentation, let's turn our attention to two models which make the assumption
+that the class-conditional densities are independentally Gaussian.
+
+<h2 align="center">Linear Discriminant Analysis</h2>
+Linear Discriminant Analysis, abbreviated LDA, is a generative model which gives linear decision boundaries
+separating classes. Before we present the core of the model, recall the PDF for the multivariate normal distribution
+having mean $\mu = [\mu_1, \ldots, \mu_d]^T \in \mathbb{R}^d$ and covariance $\Sigma$
+    $$\mathcal{N}(x|\mu, \Sigma) = \frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}} e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}$$  
+The LDA model derives from the following three assumptions
+<ol style="padding-left: 50px;">
+<li>Each class has its own mean $\mu_k \in \mathbb{R}^d$</li>
+<li>The classes share a covariance matrix $\Sigma$</li>
+<li>$p(x|C_k) \sim \mathcal{N}(x|\mu_k, \Sigma)$</li>
+</ol>
+Given the above, we obtain $p(C_k|x)$ using Bayes' Rule
+$$p(C_k|x) = \frac{p(x|C_k)p(C_k)}{\sum_{l=1}^K p(x|C_l)p(C_l)}$$
+
+We can define a convenient shorthand to simplify notation. Let $\pi_k = p(C_k)$ be the prior associated with class $k$.
+Then the above is written as
+$$p(C_k|x) = \frac{p(x|C_k)\pi_k}{\sum_{l=1}^K p(x|C_l)\pi_l}$$
+Note that the summation in the denominator is invariant in each of the $k$ posteriors, so we can ignore it in our
+maximization. Now, let's take a look at $\delta_k(x)$. It maximizes over $k$ the posteriors $p(C_k|x)$.
+Equivalently, we can maximize $\ln{p(C_k|x)}$ over $k$. Combining this with the expression for $p(C_k|x)$ given
+by Bayes' Rule, we get the following
+\begin{align*}
+  \delta_k(x) &= \max_k p(C_k|x) \\
+              &= \max_k p(x|C_k)\pi_k \\
+              &= \ln (p(x|C_k)\pi_k) \\
+              &= \ln\left({\frac{\pi_k}{(2\pi)^{d/2}|\Sigma|^{1/2}} e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}}\right) \\
+              &= -\frac{1}{2}(x-\mu_k)^T\Sigma^{-1}(x-\mu_k) - \frac{1}{2}\ln{|\Sigma|} + \frac{d}{2}\ln{2\pi} + \ln{(\pi_k)} \\
+              &= -\frac{1}{2}x^T\Sigma^{-1}x + x^T\Sigma^{-1}\mu_k - \frac{1}{2}\mu_k^T\Sigma^{-1}\mu_k - \frac{1}{2}\ln{|\Sigma|} -
+               \frac{d}{2}\ln{(2\pi)} + \ln{(\pi_k)}\\
+\end{align*}
+Notice, that the terms $-\frac{1}{2}x^T\Sigma^{-1} x$, $-\frac{1}{2}\ln{|\Sigma|}$, and $\frac{d}{2}\ln{(2\pi)}$ are shared across
+classes and do not influence the choice of $k$. Thus we can remove them to get the final form of the class discriminant function
+$$\delta_k(x) = x^T\Sigma^{-1}\mu_k - \frac{1}{2}\mu_k^T\Sigma^{-1}\mu_k + \ln(\pi_k)$$
+The {\it linear} in linear discriminant analysis comes from the fact that $\delta_k(x)$ is linear in $x$, specifically in the term
+$x^T{\Sigma^{-1}}\mu_k$. The decision boundary between any two classes $j$ and $k$ is accordingly linear and is given by
+$\{x : \delta_j(x) = \delta_k(x) \}$. Our formulation of the classification problem is now complete, and we have a concrete decision
+ rule for assigning $x$ to a class $k$, namely
+$$\delta(x) = \max_k \delta_k(x)$$
+<h2 align="center">Quadratic Discriminant Analysis</h2>
+We now generalize the LDA decision rule by removing the simplifying assumption that each of the $k$ classes shares a common
+covariance matrix. Instead, we allow each class to define its own covariance $\Sigma_k$. We proceed to derive the discriminant
+function $\delta_k(x)$ in exactly the same way as was done for LDA. The only place previously where we used the shared covariance
+assumption was in the removal of the terms $-\frac{1}{2}x^T\Sigma^{-1} x$ and $-\frac{1}{2}\ln{|\Sigma|}$ from the $k$-class
+discriminant function. Since we are no longer making that simplifying assumption, we accordingly reinsert these terms to get
+$$\delta_k(x) = -\frac{1}{2}x^T\Sigma_k^{-1}x + x^T\Sigma_k^{-1}\mu_k - \frac{1}{2}\mu_k\Sigma_k^{-1}\mu_k - \frac{1}{2}\ln{|\Sigma_k|}$$
+The quadratic dependence of $\delta_k(x)$ on $x$ is clear, and the new discriminant functions for the $k$ classes give quadratic
+ decision boundaries.
+

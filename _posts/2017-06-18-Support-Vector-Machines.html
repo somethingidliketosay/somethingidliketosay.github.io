@@ -1,0 +1,24 @@
+---
+title: Creating a Support Vector Machine in Python 
+categories: machine_learning
+layout: home_page 
+preview_img: images/svm.png
+excerpt: The support vector machine is a kernelized classification algorithm. 
+---
+<h1 align="center">Creating a Support Vector Machine in Python</h1>
+
+A Support Vector Machine is a discriminative model for classification and regression.
+SVM's learn linear decision boundaries separating classes, although non-linear boundaries
+are achievable via the application of non-linear kernel functions to input vectors.
+The SVM optimization problem seeks to maximize a quantity called <i>margin</i>, intuitively
+the orthogonal distance between the decision surface and the nearest point in feature space.
+
+Suppose we are given training data $\mathbf{x}_1, \ldots, \mathbf{x}_N \in \mathbb{R}^N$ with
+associated labels $t_1, \ldots, t_N \in \{-1, 1\}$. Then to formulate the model, we make the 
+assumption of a linear hyperplane in feature space defined as
+$$y(\mathbf{x}) = \mathbf{w}^T\phi(\mathbf{x}) + b = 0$$
+
+We seek to classify each of the $N$ training points correctly, in which case we have
+$t_ny(\mathbf{x}_n) \geq 1$ for all $n$. The distance between a given point $x$ and
+the decision boundary is
+$$\|y(x)

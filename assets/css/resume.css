@@ -1,0 +1,79 @@
+.resume h1 {
+	text-align: center;
+	font-size: 2em;
+	margin-left: auto;
+	margin-right: auto;
+	}
+
+.line2 {
+	clear: both;
+	padding-bottom: 30px;
+	}
+
+.line2 #email {
+	float: right;
+	text-align: right;
+	width: 50%;
+	}
+
+.line2 #download {
+	float: left;
+	width: 50%;
+	}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+.leftColumn h3 {
+	font-size: 1.4em;
+	text-align: left;
+	}
+
+.leftColumn > div > ul {
+	text-align: left;
+	padding-left: 80px;
+	list-style-position: outside;
+	}
+
+.leftColumn li.title {
+	text-decoration: underline;
+	font-size: 1.1em;
+	}
+
+.leftColumn h4 {
+	font-size: 1.0em;
+	padding: 0px;
+	margin: 0px;
+	}
+
+.leftColumn a {
+	margin: 0px 15px;
+	}
+
+ul.dashed {
+	list-style-type: none;
+	}
+
+ul.dashed > li:before {
+	content: "- ";
+	}
+
+.education h4 {
+	padding-left: 40px;
+	font-size: 1.1em;
+	}
+
+.techskills h4 {
+	padding-left: 40px;
+	}
+
+.description ul {
+	padding-left: 20px;
+	}
+	

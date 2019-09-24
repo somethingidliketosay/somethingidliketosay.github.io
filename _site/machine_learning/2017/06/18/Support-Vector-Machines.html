@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-4500061645003550",
+            enable_page_level_ads: true
+          });
+        </script>
+                <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111761861-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-111761861-1');
+        </script>
+        <title>Creating a Support Vector Machine in Python</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+        <link rel="stylesheet" href="/assets/css/main.css" />
+        <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+        <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<link rel="alternate" type="application/rss+xml" title="mcneela.github.io RSS Feed" href="/feed.xml" />
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+    </head>
+    <body>
+    <!-- Wrapper -->
+        <div id="wrapper">
+
+            <!-- Header -->
+            <!-- Header -->
+<header id="header">
+    <h1><a href="/index.html">Daniel McNeela</a></h1>
+    <nav class="links">
+        <ul>
+            <li><a href="/about.html">About Me</a></li>
+            <li><a href="/resume/website_resume.pdf">Resume</a></li>
+            <li><a href="/portfolio.html">Portfolio</a></li>
+            <li><a href="/machinelearning.html">Machine Learning</a></li>
+            <li><a href="/math.html">Mathematics</a></li>
+            <!-- <li><a href="/bioinfo.html">Bioinformatics</a></li> -->
+            <li><a href="/consulting.html">Consulting</a></li>
+            <li><a href="/books.html">Books</a></li>
+            <!-- <li><a href="/literature.html">Literature</a></li> -->
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="/search/">
+                    <input type="text" name="q" placeholder="Search"/>
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+
+            <!-- Menu -->
+            <section id="menu">
+    <!-- Search -->
+        <section>
+            <form class="search" method="get" action="#">
+                <input type="text" name="query" placeholder="Search" />
+            </form>
+        </section>
+
+    <!-- Links -->
+        <section>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <h3>Home</h3>
+                        <p>Return to the homepage</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="resume/website_resume.pdf">
+                        <h3>Resume</h3>
+                        <p>PDF version of my resume</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="portfolio.html">
+                        <h3>Portfolio</h3>
+                        <p>My coding portfolio</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="math.html">
+                        <h3>Mathematics</h3>
+                        <p>Posts about mathematics</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="machinelearning.html">
+                        <h3>Machine Learning</h3>
+                        <p>Posts about machine learning</p>
+                    </a>
+               </li>
+			   <!--
+               <li>
+                   <a href="literature.html">
+                       <h3>Literature</h3>
+                       <p>My reading feed</p>
+                    </a>
+               </li>
+			   -->
+            </ul>
+        </section>
+</section>
+
+
+
+                <!-- Main -->
+            <div id="main">
+
+            <h1 align="center">Creating a Support Vector Machine in Python</h1>
+
+A Support Vector Machine is a discriminative model for classification and regression.
+SVM's learn linear decision boundaries separating classes, although non-linear boundaries
+are achievable via the application of non-linear kernel functions to input vectors.
+The SVM optimization problem seeks to maximize a quantity called <i>margin</i>, intuitively
+the orthogonal distance between the decision surface and the nearest point in feature space.
+
+Suppose we are given training data $\mathbf{x}_1, \ldots, \mathbf{x}_N \in \mathbb{R}^N$ with
+associated labels $t_1, \ldots, t_N \in \{-1, 1\}$. Then to formulate the model, we make the 
+assumption of a linear hyperplane in feature space defined as
+$$y(\mathbf{x}) = \mathbf{w}^T\phi(\mathbf{x}) + b = 0$$
+
+We seek to classify each of the $N$ training points correctly, in which case we have
+$t_ny(\mathbf{x}_n) \geq 1$ for all $n$. The distance between a given point $x$ and
+the decision boundary is
+$$\|y(x)
+
+            </div>
+
+            
+
+        </div>
+
+		<!-- Scripts -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/skel.min.js"></script>
+        <script src="assets/js/util.js"></script>
+        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <script src="assets/js/main.js"></script>
+        <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+        <!-- <script type="text/javascript" async src="path-to-mathjax/MathJax.js?config=TeX-AMS_CHTML"></script> -->
+    </body>
+</html>

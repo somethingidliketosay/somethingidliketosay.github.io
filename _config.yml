@@ -1,0 +1,21 @@
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely need to edit after that.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'jekyll serve'. If you change this file, please restart the server process.
+
+# Site settings
+title: The Personal Website of Daniel McNeela 
+email: daniel.mcneela@gmail.com
+description: "The personal blog, resume, and portfolio of Daniel McNeela. I am an aspiring computer
+scientist, mathematician, and writer."
+url: "http://mcneela.github.io" # the base hostname & protocol for your site
+twitter_username: dannymcneela 
+github_username: mcneela
+paginate: 8
+paginate_path: "/home/page:num/"
+gems: [oauth,jekyll-paginate]
+ 
+# Build settings
+markdown: kramdown

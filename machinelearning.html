@@ -1,0 +1,10 @@
+---
+layout: home_page
+title: Mathematics
+author: Daniel McNeela
+---
+
+<!-- Machine Learning Posts -->
+{% for post in site.categories.machine_learning %}
+    {% include post.html target_post=post %}
+{% endfor %}

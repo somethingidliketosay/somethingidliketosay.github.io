@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-4500061645003550",
+            enable_page_level_ads: true
+          });
+        </script>
+                <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111761861-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-111761861-1');
+        </script>
+        <title>Solutions to Rudin's Principles of Mathematical Analysis</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+        <link rel="stylesheet" href="/assets/css/main.css" />
+        <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+        <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<link rel="alternate" type="application/rss+xml" title="mcneela.github.io RSS Feed" href="/feed.xml" />
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+    </head>
+    <body>
+    <!-- Wrapper -->
+        <div id="wrapper">
+
+            <!-- Header -->
+            <!-- Header -->
+<header id="header">
+    <h1><a href="/index.html">Daniel McNeela</a></h1>
+    <nav class="links">
+        <ul>
+            <li><a href="/about.html">About Me</a></li>
+            <li><a href="/resume/website_resume.pdf">Resume</a></li>
+            <li><a href="/portfolio.html">Portfolio</a></li>
+            <li><a href="/machinelearning.html">Machine Learning</a></li>
+            <li><a href="/math.html">Mathematics</a></li>
+            <!-- <li><a href="/bioinfo.html">Bioinformatics</a></li> -->
+            <li><a href="/consulting.html">Consulting</a></li>
+            <li><a href="/books.html">Books</a></li>
+            <!-- <li><a href="/literature.html">Literature</a></li> -->
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="/search/">
+                    <input type="text" name="q" placeholder="Search"/>
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+
+            <!-- Menu -->
+            <section id="menu">
+    <!-- Search -->
+        <section>
+            <form class="search" method="get" action="#">
+                <input type="text" name="query" placeholder="Search" />
+            </form>
+        </section>
+
+    <!-- Links -->
+        <section>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <h3>Home</h3>
+                        <p>Return to the homepage</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="resume/website_resume.pdf">
+                        <h3>Resume</h3>
+                        <p>PDF version of my resume</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="portfolio.html">
+                        <h3>Portfolio</h3>
+                        <p>My coding portfolio</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="math.html">
+                        <h3>Mathematics</h3>
+                        <p>Posts about mathematics</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="machinelearning.html">
+                        <h3>Machine Learning</h3>
+                        <p>Posts about machine learning</p>
+                    </a>
+               </li>
+			   <!--
+               <li>
+                   <a href="literature.html">
+                       <h3>Literature</h3>
+                       <p>My reading feed</p>
+                    </a>
+               </li>
+			   -->
+            </ul>
+        </section>
+</section>
+
+
+
+                <!-- Main -->
+            <div id="main">
+
+            <p><strong>Exercise 1:</strong> <em>If <script type="math/tex">r</script> is rational (<script type="math/tex">r \neq 0</script>) and <script type="math/tex">x</script> is irrational,
+prove that <script type="math/tex">r + x</script> and <script type="math/tex">rx</script> are irrational.</em></p>
+
+<p>Suppose <script type="math/tex">r \in \mathbb{Q}</script> and <script type="math/tex">x \in \mathbb{I}</script> but <script type="math/tex">r+x,\ rx \in \mathbb{Q}</script>.
+Then we have <script type="math/tex">r +x = \frac{a}{b}</script> for some <script type="math/tex">a,b \in \mathbb{Z}</script>. This
+implies that <script type="math/tex">x = \frac{a}{b} - r</script>. Since <script type="math/tex">r \in \mathbb{Q}</script>, <script type="math/tex">r = \frac{c}{d}</script>
+for some <script type="math/tex">c, d \in \mathbb{Z}</script>. Therefore
+	\[x = \frac{a}{b} - \frac{c}{d} = \frac{ad-bc}{bd}\]
+which implies <script type="math/tex">x \in \mathbb{Q}</script>: a contradiction. Therefore, <script type="math/tex">r + x</script> is irrational.
+Now, consider <script type="math/tex">rx</script>. If <script type="math/tex">rx \in \mathbb{Q}</script>, then</p>
+
+<p>\begin{align}
+	rx &amp;= \frac{a}{b}\ \text{for}\ a,b \in \mathbb{Z} <br />
+	\implies x &amp;= \frac{a}{b} \cdot \frac{d}{c} <br />
+	\implies x &amp;\in \mathbb{Q}
+\end{align}</p>
+
+<p>which is a contradiction. Therefore, <script type="math/tex">rx</script> is irrational.
+<!--more-->
+<br />
+<br />
+<strong>Exercise 2:</strong> <em>Prove that there is no rational whose square is <script type="math/tex">12</script>.</em>
+<br />
+<br />
+Suppose there exists a rational <script type="math/tex">p</script> such that <script type="math/tex">p^2 = 12</script>.
+Since <script type="math/tex">p \in \mathbb{Q}</script>, we can write <script type="math/tex">p = \frac{m}{n}</script> where the
+fraction <script type="math/tex">\frac{m}{n}</script> is in lowest terms, i.e. <script type="math/tex">m</script> and <script type="math/tex">n</script> are
+not both even. Then we have
+	\[\frac{m^2}{n^2} = 12 \implies m^2=4\cdot 3n^2 \implies \frac{m^2}{4} = 3n^2\]
+Since <script type="math/tex">3n^2</script> is an integer, <script type="math/tex">\frac{m^2}{4}</script> must be divisible by <script type="math/tex">4</script> and hence even.
+Since only one of <script type="math/tex">m</script> and <script type="math/tex">n</script> can be even, this implies that <script type="math/tex">n</script> is odd, from which
+it follows that <script type="math/tex">3n^2</script> is odd. But if <script type="math/tex">3n^2</script> is odd and <script type="math/tex">\frac{m^2}{4}</script> is even then
+we must have
+	\[\frac{m^2}{4} \neq 3n^2\]
+Therefore, there is no rational whose square is <script type="math/tex">12</script>.
+<br />
+<br />
+Prove Proposition 1.15.
+(a) We have
+\begin{align}
+	y = 1\cdot y = \left(\frac{1}{x} \cdot x\right) \cdot y = \frac{1}{x} \cdot (xy) =
+	\frac{1}{x} \cdot(xz) = \left(\frac{1}{x} \cdot x \right) \cdot z = 1 \cdot z = z
+\end{align}
+(b) If <script type="math/tex">xy = x</script> then <script type="math/tex">xy = x \cdot 1</script>, so by (a) we have <script type="math/tex">y=1</script>.
+<br />
+(c) If <script type="math/tex">xy = 1</script> then
+\begin{align}
+	y = 1 \cdot y = \left(\frac{1}{x} \cdot x \right) \cdot y
+	= \frac{1}{x} \cdot (xy) = \frac{1}{x} \cdot 1 = \frac{1}{x}
+\end{align}
+(d) We have
+\begin{align}
+	\dfrac{1}{(1/x)} = 1 \cdot \dfrac{1}{(1/x)} = \left( \frac{1}{x} \cdot x \right) \cdot
+	\dfrac{1}{(1/x)} = \left(\frac{1}{x} \cdot \dfrac{1}{(1/x)} \right) \cdot x = 1 \cdot x = x
+\end{align}
+Let <script type="math/tex">E</script> be a nonempty subset of an ordered set; suppose <script type="math/tex">\alpha</script> is a lower bound
+of <script type="math/tex">E</script> and <script type="math/tex">\beta</script> is an upper bound of <script type="math/tex">E</script>. Prove that <script type="math/tex">\alpha \leq \beta</script>.
+\ Because <script type="math/tex">E</script> is nonempty, there exists <script type="math/tex">x \in E</script>. Since <script type="math/tex">\alpha</script> is a lower bound of <script type="math/tex">E</script>, we 
+have <script type="math/tex">\alpha \leq x</script>. Since <script type="math/tex">\beta</script> is an upper bound of <script type="math/tex">E</script>, we have <script type="math/tex">x \leq \beta</script>. Therefore
+	\[\alpha \leq x \leq \beta \implies \alpha \leq \beta\]
+	Let <script type="math/tex">A</script> be a nonempty set of real numbers which is bounded below. Let <script type="math/tex">-A</script> be the
+set of all numbers <script type="math/tex">-x</script>, where <script type="math/tex">x \in A</script>. Prove that
+	<script type="math/tex">\inf A = - \sup(-A)</script>
+	Let <script type="math/tex">\alpha = \sup(-A)</script>. Then for each <script type="math/tex">x \in -A</script> we have <script type="math/tex">x \leq \alpha</script>. Therefore, we have
+<script type="math/tex">-x \geq -\alpha</script> for each <script type="math/tex">-x \in A</script>, so <script type="math/tex">-\alpha</script> is a lower bound for <script type="math/tex">A</script>.
+Now, suppose there exists a lower bound <script type="math/tex">\beta</script> of <script type="math/tex">A</script> such that <script type="math/tex">\beta > -\alpha</script>. Then
+\begin{align}
+	-x \geq \beta &gt; \alpha \quad \forall -x \in A \implies x \leq -\beta &lt; \alpha \quad \forall x \in -A
+	\implies \alpha \neq \sup(-A)
+\end{align}
+which is a contradiction. Therefore, <script type="math/tex">-\alpha = \inf A</script> which implies that
+	\[\inf A = -\sup (-A)\]
+(a) We have
+\begin{align}
+	(b^m)^{1/n} = (b^m)^{r/m} =b^r = b^{p/q} = (b^p)^{1/q} 
+\end{align}
+(b) We have
+\begin{align}
+	b^{r+s} = b^{\frac{m}{n} + \frac{p}{q}} = b^{\frac{mq + np}{nq}}
+	= (b^{mq}b^{np})^{\frac{1}{nq}} = b^{\frac{m}{n}}b^{\frac{p}{q}} = b^rb^s
+\end{align}
+(c) Let <script type="math/tex">b^t \in B(r)</script>. We have
+\begin{align}
+	b^t \cdot b^{r-t} = b^r
+\end{align}
+Since <script type="math/tex">r \geq t</script> for every <script type="math/tex">t</script>, we know that <script type="math/tex">b^{r-t} \geq 1 \implies b^r \geq b^t</script>.
+Therefore <script type="math/tex">b^r</script> is an upper bound for <script type="math/tex">B(r)</script>.</p>
+
+<p>Now, suppose <script type="math/tex">c</script> is an upper bound for <script type="math/tex">B(r)</script> and <script type="math/tex">% <![CDATA[
+c < b^r %]]></script>. Then
+<script type="math/tex">c = b^{r - \varepsilon}</script> for some <script type="math/tex">\varepsilon \in \mathbb{Q}</script>. Since <script type="math/tex">\mathbb{Q}</script> is dense in <script type="math/tex">\mathbb{R}</script>,
+there exists <script type="math/tex">t</script> such that <script type="math/tex">% <![CDATA[
+r - \varepsilon < t < r %]]></script>. Therefore <script type="math/tex">b^t > c</script>
+and <script type="math/tex">b^t \in B(r)</script> so <script type="math/tex">c</script> is not an upper bound for <script type="math/tex">B(r)</script>, a contradiction.
+Therefore, <script type="math/tex">b^r = \sup B(r)</script>. <br />
+(d) We have
+\begin{align}
+	b^{x+y} = \sup B(x+y)
+\end{align}
+where <script type="math/tex">x \in B(x)</script> and</p>
+
+<p><strong>Exercise</strong> Fix <script type="math/tex">b > 1</script>, <script type="math/tex">y > 0</script>, and prove that there is a unique real <script type="math/tex">x</script>
+such that <script type="math/tex">b^x = y</script>, by completing the following outline. (This <script type="math/tex">x</script> is
+called the \textit{logarithm of y to the base b}.) <br />
+(a) For any positive integer <script type="math/tex">n</script>, <script type="math/tex">b^n - 1 \geq n(b-1)</script>. <br />
+(b) Hence <script type="math/tex">b - 1 \geq n(b^{1/n}-1)</script>. <br />
+(c) If <script type="math/tex">t > 1</script> and <script type="math/tex">n > (b-1)/(t-1)</script>, then <script type="math/tex">% <![CDATA[
+b^{1/n} < t %]]></script>. <br />
+(d) If <script type="math/tex">w</script> is such that <script type="math/tex">% <![CDATA[
+b^w < y %]]></script>, then <script type="math/tex">% <![CDATA[
+b^{w + (1/n)}y < y %]]></script> for sufficiently large <script type="math/tex">n</script>. <br />
+(e) If <script type="math/tex">b^2 > y</script>, then <script type="math/tex">b^{w - (1/n)} > y</script> for sufficiently large <script type="math/tex">n</script>. <br />
+(f) Let <script type="math/tex">A</script> be the set of all <script type="math/tex">w</script> such that <script type="math/tex">% <![CDATA[
+b^w < y %]]></script>, and show that <script type="math/tex">x = \sup A</script> satisfies <script type="math/tex">b^x = y</script>. <br />
+(g) Prove that this <script type="math/tex">x</script> is unique.</p>
+
+<p>(a) Note that</p>
+
+<p>\begin{align}
+	b^n-1 &amp;= b^{n-1}\cdot b-1 <br />
+			&amp;= (b-1)b^{n-1} + b^{n-1} - 1 <br />
+			&amp;= (b-1)b^{n-1} + (b-1)b^{n-2} + b^{n-2} - 1 <br />
+			&amp;\ \ \vdots <br />
+			&amp; = (b-1)(b^{n-1} + b^{n-2} + \cdots + b + 1)
+\end{align}</p>
+
+<p>Since each of <script type="math/tex">b^{n-1}, b^{n-2}, \dots, b, 1 \geq 1</script> we have</p>
+
+<p>\begin{align}
+	(b-1)(b^{n-1} + b^{n-2} + \cdots + b + 1) \geq (b-1)\underbrace{(1 + 1 + \cdots + 1)}_{n\text{-times}} = n(b-1)
+\end{align}</p>
+
+<p>(b) Fix <script type="math/tex">n</script> and set <script type="math/tex">b = a^{1/n}</script>. Then by part (a) we have</p>
+
+<p>\begin{align}
+	b^n -1 \geq n(b-1) \implies (a^{1/n})^n - 1 \geq n(a^{1/n} - 1)
+	\implies a-1 \geq n(a^{1/n} -1)
+\end{align}</p>
+
+<p>(c) Since <script type="math/tex">\dfrac{b-1}{t-1} \geq n</script> we have</p>
+
+<p>\begin{align}
+	\frac{b-1}{t-1}(b^{1/n}-1) &lt; n(b^{1/n}-1) \leq  b-1 <br />
+	\implies \frac{1}{t-1}(b^{1/n}-1) &lt; 1 <br />
+	\implies t - 1 &gt; b^{1/n} - 1 <br />
+	\implies t &gt; b^{1/n}
+\end{align}</p>
+
+
+
+            </div>
+
+            
+
+        </div>
+
+		<!-- Scripts -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/skel.min.js"></script>
+        <script src="assets/js/util.js"></script>
+        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <script src="assets/js/main.js"></script>
+        <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+        <!-- <script type="text/javascript" async src="path-to-mathjax/MathJax.js?config=TeX-AMS_CHTML"></script> -->
+    </body>
+</html>

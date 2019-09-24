@@ -1,0 +1,10 @@
+I"ì<p>Often in mathematics, it is useful to be able to compute an approximation to a given function <script type="math/tex">f(x)</script>.
+One way of doing this is to find some <script type="math/tex">a</script> for which <script type="math/tex">f(x)</script> is easy to compute. We can then calculate
+the approximate value of <script type="math/tex">f(x)</script> when <script type="math/tex">x</script> is near <script type="math/tex">a</script>. We will call this approximation <script type="math/tex">f_{a}(x)</script>.
+More concretely, we might say <script type="math/tex">x</script> <em>is near</em> <script type="math/tex">a</script> when <script type="math/tex">% <![CDATA[
+\left|x - a\right| < \varepsilon %]]></script> for some 
+threshold value of <script type="math/tex">\varepsilon</script> our choosing. One way of settling upon such an <script type="math/tex">\varepsilon</script> might be
+by determining an acceptable upper bound <script type="math/tex">U</script> on the error of our approximation <script type="math/tex">\left|f(x) - f_{a}(x)\right|</script> and
+then finding the greatest <script type="math/tex">\varepsilon</script> such that: 
+\[\left|f(x) - f_{a}(x)\right| &lt; U \quad \forall x \in (a - \varepsilon,\ a + \varepsilon)\]</p>
+:ET

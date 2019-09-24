@@ -1,0 +1,153 @@
+---
+title: The Problem with Policy Gradient
+categories: machine_learning
+layout: home_page 
+preview_img: images/banach.jpg
+excerpt: Techniques for improving the performance of policy gradient methods. 
+---
+<h1 align="middle">The Problem(s) with Policy Gradient</h1>
+If you've read my <a href="http://mcneela.github.io/math/2018/04/18/A-Tutorial-on-the-REINFORCE-Algorithm.html">article</a>
+about the REINFORCE algorithm, you should be familiar with the update that's typically used in policy gradient methods.
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+\left[ \left(\sum_{t} \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_t r(s_t, a_t)\right)\right]$$
+It's an extremely elegant and theoretically satisfying model that suffers from only one problem - it doesn't work well in practice.
+Shocking, I know! Jokes abound about the flimsiness that occurs when policy gradient methods are applied to practical problems.
+One such joke goes like this: if you'd like to reproduce the results of any sort of RL policy gradient method as reported in academic
+papers, make sure you contact the authors and get the settings they used for their random seed. Indeed, sometimes policy gradient can
+feel like nothing more than random search dressed up in mathematical formalism. The reasons for this are at least threefold 
+(I won't rule out the possibility that there are more problems with this method of which I'm not yet aware), namely that
+</br></br>
+<ol>
+	<li>Policy gradient is <b>high variance</b>.</li>
+	<li>Convergence in policy gradient algorithms is <b>sloooow</b>.</li>
+	<li>Policy gradient is terribly <b>sample inefficient</b>.</li>
+</ol>
+I'll walk through each of these in reverse because flouting the natural order of things is fun. :)
+</br></br>
+<h3>Sample Inefficiency</h3>
+In order to get anything useful out of policy gradient, it's necessary to sample from your policy and observe the resultant reward
+literally <i>millions of times</i>. Because we're sampling directly from the policy we're optimizing, we say that policy gradient
+is an <i>on-policy</i> algorithm.
+If you take a look at the formula for the gradient update, we're calculating an expectation and 
+we're doing that in the Monte Carlo way, by averaging over a number of trial runs. Within that, we have to sum over all the steps in
+a single trajectory which itself could be frustratingly expensive to run depending on the nature of the environment you're working
+with. So we're iterating sums over sums, and the result is that we incur hugely expensive computational costs in order to acquire
+anything useful. This works fine in the realms where policy gradient has been successfully applied. If all you're interested
+in is training your computer to play Atari games, then policy gradient might not be a terrible choice. However, imagine using this
+process in anything remotely resembling a real-world task, like training a robotic arm to perform open-heart surgery, perhaps?
+Hello, medical malpractice lawsuits. However, sample inefficiency is not a problem that's unique to policy gradient methods by any
+means. It's an issue that plagues many different RL algorithms, and addressing this is key to generating a model that's useful
+in the real world. If you're interested in sample efficient RL algorithms, check out 
+<a href="https://www.microsoft.com/en-us/research/blog/provably-efficient-reinforcement-learning-with-rich-observations/?ocid=msr_blog_provably_icml_hero">the work</a> that's being
+done at Microsoft Research.
+</br></br>
+<h3>Slow Convergence</h3>
+This issue pretty much goes hand in hand with the sample inefficiency discussed above and the problem of high variance to be
+discussed below. Having to sample entire trajectories on-policy before each gradient update is slow to begin with, and the
+high variance in the updates makes the search optimization highly inefficient which means more sampling which means more updates,
+ad infinitum. We'll discuss some remedies for this in the next section. 
+</br></br>
+<h3>High Variance</h3>
+The updates made by the policy gradient are very high variance. To get a sense for why this is, first considering that in RL we're
+dealing with highly general problems such as teaching a car to navigate through an unpredictable environment or programming an agent
+to perform well across a diverse set of video games. Therefore, when we're sampling multiple trajectories from our untrained policy
+we're bound to observe highly variable behaviors. Without any a priori model of the system we're seeking to optimize, we begin with
+a policy whose distribution of actions over a given state is effectively uniform. Of course, as we train the model we hope to shape
+the probability density so that it's unimodal on a single action, or possibly multimodal over a few successful actions that can be
+taken in that state. However, acquiring this knowledge requires our model to observe the outcomes of many different actions taken 
+in many different states. This is made exponentially worse in continuous action or state spaces as visiting even close to every
+state-action pair is computationally intractable. Due to the fact that we're using Monte Carlo estimates in policy gradient, we
+trade off between computational feasibility and gradient accuracy. It's a fine line to walk, which is why variance reduction techniques
+can potentially yield huge payoffs. 
+</br></br>
+Another way to think about the variance introduced into the policy gradient update is as follows: at each time step in your trajectory
+you're observing some stochastic event. Each such event has some noise, and the accumulation of even a small amount of noise across
+a number of time steps results in a high variance outcome. Yet, understanding this allows us to suggest some ways to alter policy
+gradient so that the variance might ultimately be reduced.
+</br></br>
+<h1 align="middle">Improvements to Policy Gradient</h1>
+<h3>Reward to Go</h3>
+The first "tweak" we can use is incredibly simple. Let's take a look again at that policy gradient update.
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+\left[ \left(\sum_{t} \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_t r(s_t, a_t)\right)\right]$$
+If we break it down into the Monte Carlo estimate, we get
+$$\nabla_\theta J(\theta) = 
+\frac{1}{N} \sum_{i=1}^N \left[ \left(\sum_{t=1}^T \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_{t=1}^T r(s_t, a_t)\right)\right]$$
+If we distribute $\sum_{t=1}^T r(s_t, a_t)$ into the left innermost sum involving $\nabla \log \pi_{\theta}$, we see that we're 
+taking the gradient of $\log \pi_\theta$ at a given time step $t$ and weighting it by the sum of rewards at all timesteps. However,
+it would make a lot more sense to simply reweight this gradient by the rewards it affects. In other words, the action taken at time
+$t$ can only influence the rewards accrued at time $t$ and beyond. To that end, we replace $\sum_{t=1}^T r(s_t, a_t)$ in the gradient 
+update with the partial sum $\sum_{t'=t}^T r(s_{t'}, a_{t'})$ and call this quantity $\hat{Q}_{t}$ or the "reward to go". This quantity
+ is closely related to the $Q$ function, hence the similarity in notation. For clarity, the entire policy gradient update now becomes
+$$\frac{1}{N} \sum_{i=1}^N \left[ \left(\sum_{t=1}^T \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_{t=t'}^T r(s_{t'}, a_{t'})\right)\right]$$
+<h3>Baselines</h3>
+The next technique for reducing variance is not quite as obvious but still yields great results. If you think about how policy gradient
+works, you'll notice that how we take our optimization step depends heavily on the reward function we choose. Given a trajectory $\tau$,
+if we have a negative return $r(\tau) = \sum_{t} r(s_t, a_t)$ then we'll actually take a step in the direction opposite the gradient,
+which should have the effect of lessening the probability density on the trajectory. For those trajectories that have positive return,
+their probability density will increase. However, if we do something as simple as setting $r(\tau) = r(\tau) + b$ where $b$ is a
+sufficiently large constant such that the return for $r(\tau)$ is now positive, then we will actually increase the probability weight on
+$\tau$ even though $\tau$ still fares worse than other trajectories with previously positive return. Given how sensitive the model is
+to the shifting and scaling of the chosen reward function, it's natural to ask whether we can find an optimal $b$ such that
+(note: we're using trajectories here so some of the sums from the original PG formulation are condensed)
+$$\frac{1}{N} \sum_{i=1}^N \nabla_\theta \log \pi_\theta(\tau_i) [r(\tau_i) - b]$$
+has minimum variance. We call such a $b$ a <i>baseline</i>.
+We also want to ensure that subtracting $b$ in this way doesn't bias our estimate of the gradient. Let's do that
+first. Recall the identity we used in the original policy gradient derivation
+$$\pi_\theta(\tau) \nabla \log \pi_\theta(\tau) = \nabla \pi_\theta(\tau)$$
+To show that our estimator remains unbiased, we need to
+show that 
+	$$\mathbb{E}\left[\nabla \log \pi_\theta(\tau_i)[r(\tau_i) - b]\right] = \mathbb{E} [\nabla \log \pi_\theta(\tau_i)]$$
+We can equivalently show that $\mathbb{E} [\nabla \log \pi_\theta(\tau_i) b]$ is equal to zero. We have
+\begin{align*}
+	\mathbb{E} [\nabla \log \pi_\theta(\tau_i) b]
+	  &= \int \pi_\theta(\tau_i) \nabla \log \pi_\theta(\tau_i) b \ d\tau_i \\
+	  &= \int \nabla \pi_\theta(\tau_i) b \ d\tau_i \\
+	  &= \nabla b \int \pi_\theta(\tau_i) \ d\tau_i \\
+	  &= \nabla b 1 \\
+	  &= 0
+\end{align*}
+where we use the fact that $\int \pi_\theta(\tau_i) \ d\tau_i$ 
+is 1 because $\pi_\theta$ is a probability distribution.
+Therefore, our baseline enhanced version of the policy gradient
+remains unbiased.
+</br></br>
+The question then becomes, how do we choose an optimal setting
+of $b$. One natural candidate is the average reward
+$b = \frac{1}{N} \sum_{i=1}^N r(\tau_i)$ over all trajectories
+in the simulation. In this case, our returns are "centered",
+and returns that are better than average end up being
+positively weighted whereas those that are worse are negatively
+weighted. This actually works quite well, but it is not, in fact, optimal. To calculate the optimal setting, let's look at
+the policy gradient's variance. In general, we have
+\begin{align*}
+	Var[x] &= \mathbb{E}[x^2] - \mathbb{E}[x]^2 \\
+	\nabla J(\theta) &= \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+	\left[ \nabla \log \pi_\theta(\tau) (r(\tau) - b)\right] \\
+	Var[\nabla J(\theta)] &= \mathbb{E}_{\tau \sim \pi_\theta(\tau)} \left[(\nabla \log \pi_\theta(\tau) (r(\tau) - b))^2\right] - \mathbb{E}_{\tau \sim \pi_\theta(\tau)} \left[ \nabla_\theta \log \pi_\theta(\tau) (r(\tau) - b)\right]^2
+\end{align*}
+The rightmost term in this expression is just the square of the
+policy gradient, which for the purposes of optimizing $b$ we
+can ignore since baselines are biased in expectation. Therefore, we turn our attention to the left term.
+To simplify notation, we can write
+$$g(\tau) = \nabla \log \pi_\theta(\tau)$$
+Then we take the derivative to get
+\begin{align*}
+	\frac{dVar}{db} &= \frac{d}{db} \mathbb{E}\left[ 
+	g(\tau)^2(r(\tau) - b)^2\right] \\
+	&= \frac{d}{db}(\mathbb{E}[g(\tau)^2r(\tau)^2] - 2
+	\mathbb{E}[g(\tau)^2r(\tau)b] + b^2\mathbb{E}[g(\tau)^2]) \\
+	&= 0 -2\mathbb{E}[g(\tau)^2r(\tau)] + 2b\mathbb{E}[g(\tau)^2]
+\end{align*}
+Solving for $b$ in the final equation gives
+$$b = \frac{\mathbb{E}[g(\tau)^2r(\tau)]}{\mathbb{E}[g(\tau)^2]}
+$$
+In other words, the optimal setting for $b$ is to take the
+expected reward but reweight it by expected gradient magnitudes.
+</br></br>
+<h2>Conclusion</h2>
+Hopefully this provided you with a good overview as to how
+you can improve implementations of policy gradient to speed
+up convergence and reduce variance. In a future article, I'll
+discuss how to derive an off-policy version of policy gradient
+which improves sample efficiency and speeds up convergence.

@@ -1,0 +1,43 @@
+---
+title: The Banach Contraction Principle
+categories: math
+layout: home_page 
+preview_img: images/banach.jpg
+excerpt: This theorem guarantees the existence of fixed points in complete metric spaces under a contraction mapping. 
+---
+<h1>The Banach Contraction Principle (Banach Fixed-Point Theorem)</h1>
+I wanted to write about the Banach Contraction Principle (from here out the BCP) because of
+the intuitive mathematical beauty it illustrates. It's proof is elegant, but even more than
+that, the theorem provides intuition into problems from fields diverse as ODEs and differential
+geometry.
+</br></br>
+<u><b>Theorem Statement</b></u> If $X$ is a complete metric space and $T:X \to X$ is a contraction,
+then $T$ has a unique fixed point $a \in X$. Futhermore, for any $x \in X$, $a = \lim T^i (x)$.
+</br></br>
+<i>Proof:</i> Before starting, it should be noted that a map $T$ is a <i>contraction</i> if for
+some constant $K < 1$, we have $d(Tx, Ty) \leq K \dot d(x, y)$ for all $x, y \in X$.
+</br></br>
+Now, to begin, fix any point $x_0 \in X$ and set $x_i = Tx_{i-1}$. Letting $\delta = d(x_0. x_1)$
+we have
+\begin{align*}
+	d(x_0, x_1) &\leq d(x_0, x_1) + d(x_1, x_2) + \cdots _ d(x_{i-1}, x_i) \\
+	&\leq d(x_0, x_1) + K \cdot d(x_0, 1) + K^2 d(x_0, x_1) + \cdots \\
+	&= \delta(1 + K + K^2 + \cdots) \\
+	&= \delta/(1-K)
+\end{align*}
+Note that for $m \geq n$, the following holds:
+$$d(x_m, x_n) \leq K \cdot d(x_{n-1}, x_{m-1}) \leq K^2 \cdot d(x_{n-2}, x_{m-2}) \leq \cdots \leq K^n \cdot d(x_0, x_{m-n}) \leq \delta K^n/(1-K)$$
+which limits to 0 since $K < 1$.
+</br></br>
+The key insight here is that the $\{x_i\}_{i\in \mathbb{N}}$ form a Cauchy sequence.
+Since we assumed that $X$ is complete, this sequence converges and we can assign $a = \lim_{\i \to \infty} x_i$.
+Thus $Ta = \lim T x_i = \lim x_{i+1} = a$.
+</br></br>
+Now we need only show the uniqueness of $a$. Suppose $b$ was another fixed point. Then we'd have
+$$d(a, b) = d(Ta, Tb) \leq K \cdot d(a, b)$$
+And since $K < 1$, we get $d(a, b) = 0$ implying that $a = b$. $\blacksquare$
+</br></br>
+<!-- I find the best way to intuitively visualize this theorem is as follows. Construct in your head some Cauchy sequence 
+$\{x_i\} \subset X$ in your head with the added constraint that $d(x_i, x_{i+1}) \geq d(x_j, x_{j+1})$ for all $i \leq j$.
+In other words, the distance between consecutive points in the sequence limits monotonically towards 0.   
+ -->

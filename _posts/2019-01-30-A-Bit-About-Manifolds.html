@@ -1,0 +1,161 @@
+---
+title: A Bit About Manifolds 
+categories: math
+layout: home_page 
+preview_img: images/manifold.png
+excerpt: A manifold is a structure
+categories: math
+---
+<b> Work In Progress! </b>
+<h1>A Bit About Manifolds</h1>
+A <i>manifold</i>, in the broadest sense, is a structure which is locally homeomorphic to $\mathbb{R}^n$
+at each of its open sets. In layman's terms, this means that while a manifold may be sufficiently "abstracted"
+such that its elements look nothing like those of $\mathbb{R}^n$, we can regardless treat the manifold as if
+it's $\mathbb{R}^n$, with a few potential caveats. But first, the formal definition.
+</br></br>
+<u><b>Definition 1</b></u> A <i>manifold</i> is a second countable Hausdorff space $M$ equipped with a collection of
+"charts" (called an atlas) such that for each open $U \subset M$ there exists a homeomorphism $\phi: U \to V \subset \mathbb{R}^n$
+where $V$ is itself open. This $\phi$ is called a chart. We require that each $x \in M$ be in the domain of some
+chart. We require that the collection of charts be maximal subject to the conditions above.
+</br></br>
+If we want to be able to perform calculus on our manifolds, however, a bit more is required.
+</br></br>
+<u><b>Definition 2</b></u> A <i>smooth</i> ($C^\infty$) manifold is a manifold with the additional
+restriction that the change of coordinates defined by the composition of one chart and another's inverse is itself
+$C^\infty$. That is, we require for two charts $\phi$ and $\psi$ that given $\phi: U \to U' \subset \mathbb{R}^n, \psi: V \to V' \subset \mathbb{R}^n$, the following be continuously differentiable of all orders
+
+$$\phi \psi^{-1} : \psi (U \cap V) \to \phi (U \cap V)$$
+
+Both of these definitions look like quite the mouthful at first, but there's really little in the way of hidden complexity.
+The defacto differentiability requirements on the change of coordinates mappings make inherent sense. If this differentiability
+was not presupposed, there'd be nothing restricting the manifold from being put together as a patchwork of locally smooth
+neighborhoods that don't inherently connect in a "nice" way, i.e. there may exist discontinuities at the points where they join.
+</br></br>
+The notion of second countability may throw some for a loop, so I'll take some time to review it. A topological space is called
+second countable if it exhibits a countable base $\mathcal{B} = \bigcup_{i=1}^\infty B_i$. This is a property that's characteristic
+of many conventionally "nice" mathematical spaces, and its presence in this definition is a natural consequence of the homeomorphicity
+with $\mathbb{R}^n$. $\mathbb{R}^n$ is second countable, and second countability is a topological invariant. More concretely,
+since there exists a countable collection of open sets $\mathcal{B}$ which form a base for $\mathbb{R}^n$, we can take this collection and form
+its equivalent in $M$ by applying the appropriate inverse chart $U_i = \phi_i^{-1}(B_i)$ for $B_i \in \mathcal{B}$ to get a countable
+base $\mathcal{U} = \bigcup_{i=1}^\infty U_i$ for $M$.
+</br></br>
+Similarly, when we look at the Hausdorff condition in the manifold definition, it follows naturally from the homeomorphic nature of
+the neighborhoods of the manifold with those of $\mathbb{R}^n$. Recall that a Hausdorff space is one for which every pair of distinct
+points there exists a corresponding pair of disjoint neighborhoods of those points. This is another standard regularity condition which
+is also a topological invariant.
+</br></br>
+A slightly more general way of thinking about manifolds is to consider them as topological spaces endowed with some additional structure
+which varies based on the specific type of manifold under consideration. We can denote this as a pair $(T, S)$ where $T$ is the space
+and $S$ is the structure. For example, we can specify the smooth $n$-dimensional real manifold as the pair $(\mathbb{R}^n, C^\infty)$.
+When viewed in this light, any map from one manifold to a counterpart which "satisfies" the underlying structure of the two spaces is
+called a <i>morphism</i>. We can further refine this set by considering only those morphisms whose inverses are themselves morphisms.
+A map satisfying this additional condition is called an <i>isomorphism</i>. As an example, for standard manifolds the canonical 
+isomorphisms are the homeomorphisms. For smooth manifolds, the isomorphisms are diffeomorphisms. To formalize this, we define the 
+following.
+</br></br>
+<u><b>Definition</b></u> Suppose $X$ is a topological structure. We say that the function $F_X$ is a <i>functional structure</i> on $X$
+ if and only if for all open $U \subset X$
+i</br></br>
+1. $F_X(U)$ is a subalgebra of the algebra of all continuous real-valued functions on $U$.</br>
+2. $F_X(U)$ contains all constant functions.</br>
+3. $V \subset U, f \in F_X(U) \implies f|_V \in F_X(V)$</br>
+4. $U = \bigcup U_\alpha$ and $f|_{U_\alpha} \in F_X(U_\alpha)$ for all $\alpha \implies f \in F_X(U)$.
+</br></br>
+Then the notions of morphism and isomorphism can be formulated accordingly as...
+</br></br>
+<u><b>Definition</b></u> A <i>morphism</i> of functionally structured spaces
+$$(X, F_X) \to (Y, F_Y)$$
+is a map $\phi:X \to Y$ such that composition $f \to f \circ \phi$ carries $F_Y(U)$ into $F_X(\phi^{-1}(U))$. An isomorphism is a morphism $\phi$ such that $\phi^{-1}$ exists as a morphism.
+</br></br>
+<h2>Tangent Spaces, Differentials, and All Things Adjacent</h2>
+The fundamental concept of differential calculus is the derivative, which allows us to compute the line tangent to a curve at any
+given point. The analogue for manifolds is the differential, which allows us to define tangent vectors to arbitrary trajectories
+along a surface. It will turn out that the set of these vectors in fact comprises a vector space
+</br></br>
+<u><b>Definition</b></u> Take a smooth manifold $M$ and a smooth, parametrized curve $\gamma: \mathbb{R} \to M$ satisfying
+$\gamma(0) = p$. Let $f$ be a smooth function defined on an open neighborhood of $p$. Then we define the <i>directional derivative</i>
+of $f$ along $\gamma$ at $p$ to be
+$$D_\gamma(f) = \frac{d}{dt} f(\gamma(t))|_{t=0}$$
+We call the operator $D_\gamma$ the <i>tangent vector</i> to $\gamma$ at $p$. For a point $p \in M$ we denote by $T_p(M)$ the vector
+space of all tangent vectors to $M$ at $p$.
+</br></br>
+To understand the operator $D_\gamma$ in a more global context, it behooves us to introduce <i>algebras</i>. Algebras exist as a simple
+extension of vector spaces. Specifically, they are vector spaces having an associated bilinear product. That is they take elements from
+two vector spaces and the product mapping sends these to a third vector space. In order to understand this view of derivatives along
+manifolds, we need to present the algebra on which the tangent operator is defined.
+</br></br>
+To do so, consider the following definition. Suppose you have a smooth, real-valued function $f:M \to Y$ defined at some point $p \in M$ where
+$M$ is a smooth manifold. We call the equivalence class of $f$ defined under the equivalence relation 
+$f_1 \sim f_2 \iff f_1(x) = f_2(x)$ for all $x$ in a neighborhood $U$ of $p$ a <i>germ</i>. We can extend the notion 
+of a germ to sets $S$ and $T$ via the relation $S \sim_p T$ if there exists a neighborhood $U$ of $p$ such that 
+$$S \cap U = T \cap U \neq \emptyset$$
+The way we're defining a germ here is more specific than is necessary. Germs are
+a more general concept which capture notions of local equivalence via some property for objects acting on a topological space. 
+Most often these objects are functions or maps with some sort of additional structure, e.g. smoothness or continuity, although this is
+not strictly necessary. To define a germ one needs only a notion of equality and a topological space, as these are the most abstract
+structures which allow us to define notions of locality via neighborhoods. When discussing germ equivalence between two maps $f$ and
+$g$ we can consider that these maps need not be defined on the same domain, provided some caveats are satisfied. We require that
+if $f$ has domain $S$ and $g$ has domain $T$ then $S$ and $T$ are germ equivalent via the definition for sets given above. We also
+require that $f|_{S \cap V} = g|_{T \cap V}$ for some smaller neighborhood $V$ of $p$ satisfying $p \in V \subseteq U$.
+</br></br>
+We denote the germ at $p$ of a function $f$ as $[f]_p$ and we denote the equivalence relation it defines as $f \sim_p g$.
+</br></br>
+A <b>$K$-linear derivation</b> $D:A_1 \to A_2$ where $A_1, A_2$ are algebras is a a $K$-linear map satisfying the product rule
+$$D(ab) = aD(b) + D(a)b$$
+<h3>Defining Tangent Vectors via Derivations</h3>
+Suppose $M$ is a $C^\infty$ manifold. For any $x \in M$ we define a <b>derivation</b> by choosing a linear map $D:C^\infty(M) \to 
+\mathbb{R}^n$ satisfying 
+$$\forall f, g \in C^\infty(M) \quad D(fg) = f(x)D(g) + D(f)g(x)$$
+We can define addition and scalar multiplication on the set of derivations in the same way we do for elements of a vector space. 
+We call the vector space obtained the tangent space to $x$ in $M$ and denote it as $T_x(M)$.
+</br></br>
+Let $\gamma: (-1, 1) \to M$ be a differentiable curve with $\gamma(0) = x$. Then the derivation $D_\gamma$ at $x$ is defined by
+$D_\gamma(f) := (f \circ \gamma)'(0)$
+</br></br>
+<h3>Getting Infinitesimal with Differentials</h3>
+When calculus is taught, the notion of a <i>differential</i> is frequently introduced and is usually vaguely described as the
+infinitesimal change in some variable. Haphazard teachers may introduce the chain rule by making generalizations such as
+that one can cancel differentials like $dx$ in the equation 
+$$\frac{df}{dz} = \frac{df}{dx} \frac{dx}{dz}$$
+but this isn't entirely true, or at least it doesn't tell the whole story. We also see the differential pop up in the notation for
+integration, i.e. we write $\int_{a}^b f(x) \ dx$ but we never really explain what the differential is and what it's doing there.
+</br></br>
+The general structure in which differential geometry operates makes things much clearer. What we'll see is that the differential
+is actually an object which instructs us in how to map between the tangent spaces of different manifolds. The differential is
+defined with respect to such a smooth map. In fact, the differential is an operator that takes in a map between manifolds and
+spits out a map between their tangent spaces. For more specifics, let's get to the definition.
+</br></br>
+<b><u>Definition</u></b> Let $\phi : M \to N$ be a smooth map between manifolds. Then we say the the differential of $\phi$ is
+the linear map $d\phi$ satisfying
+$$d\phi(D)(g) = D(g \circ \phi)$$
+and also satisfying
+$$d\phi d\psi = d(\phi \circ \psi)$$
+<h3>Taking this Tangent Thing a Step Further - Tangent Bundles</h3>
+Before giving the formal definition, I'd like to give a brief intuitive explanation of what a tangent bundle constitutes. The
+tangent bundle is unique in that it is itself a manifold $T(M)$, obtained by construction from the tangent spaces at each point
+of some different manifold $M$. It can also be thought of as a cartesian product between points $p \in M$ and the associated tangent
+ vectors $v_p \in T_p(M)$. The cartesian product formulation naturally gives rise to a projection map $\pi:T(M) \to M$ from the 
+ tangent bundle back to the manifold from whence it was constructed. Formally, we define the <i>tangent bundle</i> as the union of
+ tangent spaces
+$$T(M) = \bigcup \{T_p(M) | p \in M\}$$
+However, to make the manifold valid, we still need to specify an appropriate set of charts. 
+A manifold is said to be <i>parallelizable</i> if its tangent bundle is trivial.
+<h3>An Instance of a More General Phenomenon</h3>
+The tangent bundle is a specific instance of a concept called the <i>vector bundle</i>, which provides a method for constructing
+a vector space parameterized by a different sort of space such as a topological space $X$ or a manifold $M$. One of the characteristics
+of vector bundles is that they are <i>locally trivial</i>. They are also consist of a base space $V$ and a total space $M$. The base
+space is formed as a family of vector spaces over points defined in $M$, and that family is required to be smoothly varying.
+
+The formal definition involves both a base space $B$ and a total space $E$. A tangent
+
+<h3>A General Instance of an Even More General Phenomenon</h3>
+A vector bundle, as general as it is, is actually an instance of an even more general general phenomenon. The idea is we replace the
+<i>vector</i> part of <i>vector bundle</i> with a fiber of some mapping. This mapping can be anything we want, subject to a few 
+conditions. This is used to construct spaces which look locally like product spaces but from a global view have a more general
+topological structure.
+</br></br>
+<b><u>Formal Definition</u></b> A <i>fiber bundle</i> is a tuple $(B, E, \pi, F)$ consisting of a base space $B$, a total space $E$,
+a continuous surjective projection map $\pi:E \to B$ and a fiber $F$, all satisfying the following
+</br></br>
+1. For every $x \in E$, there exists an open neighborhood $U \subset B$ of $\pi(x)$ such that there exists a homeomorphism 
+$\varphi: \pi^{-1}(U) \to U \times F$

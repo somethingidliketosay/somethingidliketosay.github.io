@@ -1,0 +1,39 @@
+<!-- Sidebar -->
+<section id="sidebar">
+
+    <!-- Intro -->
+        <section id="intro">
+            <a href="about.html" class="logo"><img src="images/face2.jpg" alt="" /></a>
+            <header>
+                <h2>Daniel McNeela</h2>
+                <p>Machine Learning Scientist at <a href="http://www.humanlongevity.com">Human Longevity, Inc.</a></br>
+                </br>
+                B.A. in Applied Mathematics from <a href="http://www.berkeley.edu">University of California, Berkeley</a></p>
+            </header>
+        </section>
+
+    <!-- Mini Posts -->
+        <section>
+          <h3>A Random Post About Machine Learning</h3> 
+            <div class="mini-posts">
+                {% for post in site.categories.machine_learning limit: 1 %}
+                    {% include mini_post.html target_post=post %}
+                {% endfor %}
+            </div>
+        </section>
+
+    <!-- Posts List -->
+        <section>
+          <h3>Latest Posts in Mathematics</h3>
+            <ul class="posts">
+              {% for post in site.categories.math limit: 2 %}
+                  {% include post_list.html target_post=post %}
+              {% endfor %}
+            </ul>
+        </section>
+
+    <!-- About -->
+    {% include about.html %}
+    <!-- Footer -->
+    {% include footer.html %}
+</section>

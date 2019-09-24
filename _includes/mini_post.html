@@ -1,0 +1,17 @@
+<!-- Mini Post -->
+<article class="mini-post">
+    <header>
+        <h3><a href="{{include.target_post.url}}">{{ include.target_post.title }}</a></h3>
+        <time class="published" datetime="2015-10-20">{% assign d = include.target_post.date | date: "%-d"  %}
+{{ include.target_post.date | date: "%B" }} 
+{% case d %}
+  {% when '1' or '21' or '31' %}{{ d }}st
+  {% when '2' or '22' %}{{ d }}nd
+  {% when '3' or '23' %}{{ d }}rd
+  {% else %}{{ d }}th
+  {% endcase %}, 
+{{ include.target_post.date | date: "%Y" }} </time>
+        <a href="about.html" class={{ include.target_post.author }}><img src="{{ inclued.target_post.avatar }}" alt="" /></a>
+    </header>
+    <a href="about.html" class="image"><img src="{{ include.target_post.preview_img }}" alt="" /></a>
+</article>

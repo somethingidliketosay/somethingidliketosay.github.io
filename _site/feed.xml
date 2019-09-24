@@ -1,0 +1,1164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Personal Website of Daniel McNeela</title>
+    <description>The personal blog, resume, and portfolio of Daniel McNeela. I am an aspiring computer scientist, mathematician, and writer.</description>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Mon, 09 Sep 2019 13:47:29 +0200</pubDate>
+    <lastBuildDate>Mon, 09 Sep 2019 13:47:29 +0200</lastBuildDate>
+    <generator>Jekyll v4.0.0</generator>
+    
+      <item>
+        <title>Writing Your Own Optimizers in PyTorch</title>
+        <description>&lt;h1 id=&quot;writing-your-own-optimizers-in-pytorch&quot;&gt;Writing Your Own Optimizers in PyTorch&lt;/h1&gt;
+
+&lt;p&gt;This article will teach you how to write your own optimizers in PyTorch - you know the kind, the ones where you can write something like&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;optimizer = MySOTAOptimizer(my_model.parameters(), lr=0.001)
+for epoch in epochs:
+	for batch in epoch:
+		outputs = my_model(batch)
+		loss  = loss_fn(outputs, true_values)
+		loss.backward()
+		optimizer.step()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The great thing about PyTorch is that it comes packaged with a great standard library of optimizers that will cover all of your garden variety machine learning needs.
+However, sometimes you’ll find that you need something just a little more specialized. Maybe you wrote your own optimization algorithm that works particularly well
+for the type of problem you’re working on, or maybe you’re looking to implement an optimizer from a recently published research paper that hasn’t yet made its way
+into the PyTorch standard library. No matter. Whatever your particular use case may be, PyTorch allows you to write optimizers quickly and easily, provided you know
+just a little bit about its internals. Let’s dive in.&lt;/p&gt;
+
+&lt;h2 id=&quot;subclassing-the-pytorch-optimizer-class&quot;&gt;Subclassing the PyTorch Optimizer Class&lt;/h2&gt;
+&lt;p&gt;All optimizers in PyTorch need to inherit from &lt;code class=&quot;highlighter-rouge&quot;&gt;torch.optim.Optimizer&lt;/code&gt;. This is a base class which handles all general optimization machinery. Within this class,
+there are two primary methods that you’ll need to override: &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;step&lt;/code&gt;. Let’s see how it’s done.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-init-method&quot;&gt;The &lt;strong&gt;init&lt;/strong&gt; Method&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method is where you’ll set all configuration settings for your
+optimizers. Your &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method must take a &lt;code class=&quot;highlighter-rouge&quot;&gt;params&lt;/code&gt; argument which specifies
+an iterable of parameters that will be optimized. This iterable must have a
+deterministic ordering - the user of your optimizer shouldn’t pass in something
+like a dictionary or a set. Usually a list of &lt;code class=&quot;highlighter-rouge&quot;&gt;torch.Tensor&lt;/code&gt; objects is given.&lt;/p&gt;
+
+&lt;p&gt;Other typical parameters you’ll specify in the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method include
+&lt;code class=&quot;highlighter-rouge&quot;&gt;lr&lt;/code&gt;, the learning rate, &lt;code class=&quot;highlighter-rouge&quot;&gt;weight_decays&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;betas&lt;/code&gt; for Adam-based optimizers,
+etc.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method should also perform some basic checks on passed in
+parameters. For example, an exception should be raised if the provided learning
+rate is negative.&lt;/p&gt;
+
+&lt;p&gt;In addition to &lt;code class=&quot;highlighter-rouge&quot;&gt;params&lt;/code&gt;, the &lt;code class=&quot;highlighter-rouge&quot;&gt;Optimizer&lt;/code&gt; base class requires a parameter called
+&lt;code class=&quot;highlighter-rouge&quot;&gt;defaults&lt;/code&gt; on initialization. This should be a dictionary mapping parameter
+names to their default values. It can be constructed from the kwarg parameters
+collected in your optimizer class’ &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method. This will be important in 
+what follows.&lt;/p&gt;
+
+&lt;p&gt;The last step in the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method is a call to the &lt;code class=&quot;highlighter-rouge&quot;&gt;Optimizer&lt;/code&gt; base class.
+This is performed by calling &lt;code class=&quot;highlighter-rouge&quot;&gt;super()&lt;/code&gt; using the following general signature.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;super(YourOptimizerName, self).__init__(params, defaults)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;implementing-a-novel-optimizer-from-scratch&quot;&gt;Implementing a Novel Optimizer from Scratch&lt;/h2&gt;
+&lt;p&gt;Let’s investigate and reinforce the above methodology using an example taken
+from the HuggingFace &lt;code class=&quot;highlighter-rouge&quot;&gt;pytorch-transformers&lt;/code&gt; NLP library. They implement a PyTorch
+version of a weight decay Adam optimizer from the BERT paper. First we’ll take a 
+look at the class definition and &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method. Here are both combined.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/adamw-init.png&quot; style=&quot;height: 75%; width: 75%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can see that the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method accomplishes all the basic requirements
+listed above. It implements basic checks on the validity of all provided &lt;code class=&quot;highlighter-rouge&quot;&gt;kwargs&lt;/code&gt;
+and raises exceptions if they are not met. It also constructs a dictionary of
+defaults from these required parameters. Finally, the &lt;code class=&quot;highlighter-rouge&quot;&gt;super()&lt;/code&gt; method is called
+to initialize the &lt;code class=&quot;highlighter-rouge&quot;&gt;Optimizer&lt;/code&gt; base class using the provided &lt;code class=&quot;highlighter-rouge&quot;&gt;params&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;defaults&lt;/code&gt;
+.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-step-method&quot;&gt;The step() Method&lt;/h3&gt;
+
+&lt;p&gt;The real magic happens in the &lt;code class=&quot;highlighter-rouge&quot;&gt;step()&lt;/code&gt; method. This is where the optimizer’s logic
+is implemented and enacted on the provided parameters. Let’s take a look at how
+this happens.&lt;/p&gt;
+
+&lt;p&gt;The first thing to note in &lt;code class=&quot;highlighter-rouge&quot;&gt;step(self, closure=None)&lt;/code&gt; is the presence of the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;closure&lt;/code&gt; keyword argument. If you consult the PyTorch documentation, you’ll
+see that &lt;code class=&quot;highlighter-rouge&quot;&gt;closure&lt;/code&gt; is an optional callable that allows you to reevaluate the
+loss at multiple time steps. This is unnecessary for most optimizers, but is
+used in a few such as Conjugate Gradient and LBFGS. According to the docs,
+“the closure should clear the gradients, compute the loss, and return it”.
+We’ll leave it at that, since a closure is unnecessary for the &lt;code class=&quot;highlighter-rouge&quot;&gt;AdamW&lt;/code&gt; optimizer.&lt;/p&gt;
+
+&lt;p&gt;The next thing you’ll notice about the &lt;code class=&quot;highlighter-rouge&quot;&gt;AdamW&lt;/code&gt; step function is that it iterates
+over something called &lt;code class=&quot;highlighter-rouge&quot;&gt;param_groups&lt;/code&gt;. The optimizer’s &lt;code class=&quot;highlighter-rouge&quot;&gt;param_groups&lt;/code&gt; is a list
+of dictionaries which gives a simple way of breaking a model’s parameters into
+separate components for optimization. It allows the trainer of the model to
+segment the model parameters into separate units which can then be optimized
+at different times and with different settings. One use for multiple &lt;code class=&quot;highlighter-rouge&quot;&gt;param_groups&lt;/code&gt;
+would be in training separate layers of a network using, for example, different
+learning rates. Another prominent use cases arises in transfer learning. When
+fine-tuning a pretrained network, you may want to gradually unfreeze layers
+and add them to the optimization process as finetuning progresses. For this,
+&lt;code class=&quot;highlighter-rouge&quot;&gt;param_groups&lt;/code&gt; are vital. Here’s an example given in the PyTorch documentation
+in which &lt;code class=&quot;highlighter-rouge&quot;&gt;param_groups&lt;/code&gt; are specified for SGD in order to separately tune the 
+different layers of a classifier.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/param-groups.png&quot; style=&quot;height: 75%; width: 75%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now that we’ve covered some things specific to the PyTorch internals, let’s get
+to the algorithm. Here’s a link to 
+&lt;a href=&quot;https://arxiv.org/pdf/1711.05101.pdf&quot;&gt;the paper&lt;/a&gt; 
+which originally proposed the AdamW algorithm. And here, from the paper, is a
+screenshot of the proposed update rules.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/adamw-details.png&quot; style=&quot;display: block; margin-left: auto; margin-right: auto; width: 75%&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Let’s go through this line by line with the source code. First, we have the
+loop&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;for p in group['params']
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Nothing mysterious here. For each of our parameter groups, we’re iterating over
+the parameters within that group. Next.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;if p.grad is None:
+	continue
+grad = p.grad.data
+if grad.is_sparse:
+	raise RuntimeError('Adam does not support sparse gradients, please consider SparseAdam instead')
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This is all simple stuff as well. If there is no gradient for the current 
+parameter, we just skip it. Next, we get the actual plain Tensor object for
+the gradient by accessing &lt;code class=&quot;highlighter-rouge&quot;&gt;p.grad.data&lt;/code&gt;. Finally, if the tensor is sparse, we
+raise an error because we are not going to consider implementing this for sparse
+objects.&lt;/p&gt;
+
+&lt;p&gt;Next, we access the current optimizer state with&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;state = self.state[p]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;In PyTorch optimizers, the &lt;code class=&quot;highlighter-rouge&quot;&gt;state&lt;/code&gt; is simply a dictionary associated with the
+optimizer that holds the current configuration of all parameters.&lt;/p&gt;
+
+&lt;p&gt;If this is the first time we’ve accessed the state of a given parameter, then we
+set the following defaults&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;if len(state) == 0:
+	state['step'] = 0
+	# Exponential moving average of gradient values
+	state['exp_avg'] = torch.zeros_like(p.data)
+	# Exponential moving average of squared gradient values
+	state['exp_avg_sq'] = torch.zeros_like(p.data)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;We obviously start with step 0, along with zeroed out exponential average and
+exponential squared average parameters, both the shape of the gradient tensor.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
+beta1, beta2 = group['betas']
+
+state['step'] += 1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Next, we gather the parameters from the state dict that will be used in the 
+computation of the update. We also increment the current step.&lt;/p&gt;
+
+&lt;p&gt;Now, we begin the actual updates. Here’s the code.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Decay the first and second moment running average coefficient
+# In-place operations to update the averages at the same time
+exp_avg.mul_(beta1).add_(1.0 - beta1, grad)
+exp_avg_sq.mul_(beta2).addcmul_(1.0 - beta2, grad, grad)
+denom = exp_avg_sq.sqrt().add_(group['eps'])
+
+step_size = group['lr']
+if group['correct_bias']:  # No bias correction for Bert
+	bias_correction1 = 1.0 - beta1 ** state['step']
+	bias_correction2 = 1.0 - beta2 ** state['step']
+	step_size = step_size * math.sqrt(bias_correction2) / bias_correction1
+
+p.data.addcdiv_(-step_size, exp_avg, denom)
+
+# Just adding the square of the weights to the loss function is *not*
+# the correct way of using L2 regularization/weight decay with Adam,
+# since that will interact with the m and v parameters in strange ways.
+#
+# Instead we want to decay the weights in a manner that doesn't interact
+# with the m/v parameters. This is equivalent to adding the square
+# of the weights to the loss with plain (non-momentum) SGD.
+# Add weight decay at the end (fixed version)
+if group['weight_decay'] &amp;gt; 0.0:
+	p.data.add_(-group['lr'] * group['weight_decay'], p.data)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The above code corresponds to equations 6-12 in the algorithm implementation from
+the paper. Following along with the math should be easy enough. What I’d like to
+take a closer look at is the built in Tensor methods that allow us to do the 
+in-place computations.&lt;/p&gt;
+
+&lt;p&gt;A nice, relatively hidden feature of PyTorch which you might not be aware of is
+that you can access any of the standard PyTorch functions, e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;torch.add()&lt;/code&gt;,
+&lt;code class=&quot;highlighter-rouge&quot;&gt;torch.mul()&lt;/code&gt;, etc. as in-place operations on the Tensors directly by appending
+an &lt;code class=&quot;highlighter-rouge&quot;&gt;_&lt;/code&gt; to the method name. Thus, taking a closer look at the first update, we
+find we can quickly compute it as&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;exp_avg.mul_(beta1).add_(1.0 - beta1, grad)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;rather than&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;torch.mul(beta1, torch.add(1.0 - beta1, grad))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Of course, there are a few special operations used here with which you may not
+be familiar, for example, &lt;code class=&quot;highlighter-rouge&quot;&gt;Tensor.addcmul_&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Tensor.addcdiv_&lt;/code&gt;. This takes the
+input and adds it to either the product or dividend, respectively, of the two
+latter inputs. If you need a more in-depth rundwon of the various operations
+available to be performed on &lt;code class=&quot;highlighter-rouge&quot;&gt;Tensor&lt;/code&gt; objects, I highly recommend checking out
+&lt;a href=&quot;https://jhui.github.io/2018/02/09/PyTorch-Basic-operations/&quot;&gt;this post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You’ll also see that the learning rate is accessed in the last line in the 
+computation of the final result. This loss is then returned.&lt;/p&gt;
+
+&lt;p&gt;And…that’s it! Constructing your own optimizers is as simple as that. Of course,
+you need to devise your own optimization algorithm first, which can be a little
+bit trickier ;). I’ll leave that one to you.&lt;/p&gt;
+
+&lt;p&gt;Special thanks to the authors of Hugging Face for implementing the &lt;code class=&quot;highlighter-rouge&quot;&gt;AdamW&lt;/code&gt;
+optimizer in PyTorch.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 03 Sep 2019 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/machine_learning/2019/09/03/Writing-Your-Own-Optimizers-In-Pytorch.html</link>
+        <guid isPermaLink="true">http://localhost:4000/machine_learning/2019/09/03/Writing-Your-Own-Optimizers-In-Pytorch.html</guid>
+        
+        
+        <category>machine_learning</category>
+        
+      </item>
+    
+      <item>
+        <title>Writing Your Own Optimizers in PyTorch</title>
+        <description>&lt;h1&gt;Writing Your Own Optimizers in PyTorch&lt;/h1&gt;</description>
+        <pubDate>Tue, 03 Sep 2019 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/machine_learning/2019/09/03/Writing-Your-Own-Optimizers-In-Pytorch.html</link>
+        <guid isPermaLink="true">http://localhost:4000/machine_learning/2019/09/03/Writing-Your-Own-Optimizers-In-Pytorch.html</guid>
+        
+        
+        <category>machine_learning</category>
+        
+      </item>
+    
+      <item>
+        <title>Machine Learning for the Movies</title>
+        <description>&lt;h1 align=&quot;center&quot;&gt;Machine Learning for the Movies&lt;/h1&gt;
+(Note: This article originally appeared at &lt;a href=&quot;https://www.clarifai.com/blog/machine-learning-for-the-movies&quot;&gt;https://www.clarifai.com/blog/machine-learning-for-the-movies&lt;/a&gt;. If you are looking for a great computer
+vision solution for your machine learning product, I highly recommend you
+check out Clarifai!)
+&lt;/br&gt;&lt;/br&gt;
+For many, machine learning is useful only insomuch that the insights it generates drive business or cut costs. Within the film industry, top studios have traditionally banked huge budgets on new scripts predicated on little but studio executives’ past experience, intuition, and hopeful conjecture. However, 20th Century Fox recently demonstrated that a paradigm shift within the entertainment industry may be underway. Their team of data scientists and researchers devised a machine learning model called Merlin Video that leverages film trailer data to predict which movies a filmgoer would be most likely to see given their viewing history and other demographic information. The team chose movie trailers as their object of study because they act as the most impactful determinant in a customer’s decision as to whether or not they will go to see a movie in theatres.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Understanding the Model Architecture&lt;/h2&gt;
+At the heart of Merlin are convolutional neural networks (CNNs), a type of model which has classically been used to achieve state of the art results on image recognition tasks. Merlin employs these neural networks by applying them to the individual frames of a movie trailer; however, the architecture includes clever processing steps which allow the model to capture certain aspects of the trailer’s timing. The model also relies heavily on a technique called collaborative filtering that’s commonly used when devising recommender systems. The crux of the idea is that a recommendation model should incorporate a wide diversity of data sources. In addition, it relies on the belief that if user A has similar tastes to user B on known data, then that shared similarity in preferences is likely to extend to unknown data.
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/movie-model-breakdown.png&quot; style=&quot;height: 50%; width: 50%&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+The output of the model relies primarily on what are called the movie and user vectors. The idea is that if accurate representations of each can be computed, then a proxy for the affinity a given user has for a given movie can be determined by computing the distance between their respective vectors. This distance is combined with user frequency and recency data and fed into a simple logistic regression classifier which provides the final output prediction giving the probability that user i will watch movie j.
+&lt;/br&gt;&lt;/br&gt;
+So how are the movie and user vectors created? The user vector is actually pretty simple. It’s just the averaged sum of the vectors corresponding to the movies that that particular user attended. As such, the real magic of the model relies in the creation of the movie vector. The movie vector is, in fact, created by the CNN previously alluded to. The global structure of the network is that it defines a number of features designed to capture specific actions relevant to a movie’s content. For example, one feature might seek to determine whether a trailer involves long, scenic shots of nature. This could indicate that the trailer is for a documentary. Another feature might try to detect a fast-paced fist fight indicative of an action movie. A key aspect of the model is that it goes beyond conventional CNNs by capturing the pacing and temporality of film sequences. That means it can tell the difference between quickly flickering frames which might indicate a flashback or a high speed chase and long, drawn out shots of dialogue or other slow-moving moments. Here’s the full diagram of the model which computes the movie vector.
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/movie-layer-details.png&quot; style=&quot;height: 50%; width: 50%&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Training the Model&lt;/h2&gt;
+The team at Fox trained the model on YouTube8M, a rich dataset provided by Google and consisting of 6.1 million YouTube videos annotated with any of 3800+ entities. The dataset provides 350,000 hours of video described by 2.6 billion precomputed audio and video features. This provides massive explanatory power for the Merlin model to take advantage of. 
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/model-architecture-flow.png&quot; style=&quot;height: 50%; width: 50%&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+&lt;/br&gt;&lt;/br&gt;
+If you take a look at the above diagram which lays out the Merlin architecture’s data flow, you’ll see that they also feed the model film metadata, textual synopses, and data about the customer acquired at the ticket box.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Evaluating the Model&lt;/h2&gt;
+To assess the accuracy of their model, the team at Fox evaluated its predictions on the trailer of the recently released action flick, Logan. For those unfamiliar with the film, it’s an X-Men spinoff which focuses on the trials and travails of Wolverine as he wages war against the bad guys and saves the girl. Pretty typical Hollywood stuff. Astonishingly, the Merlin model captures the majority of the key ideas presented in the Logan trailer and uses these to accurately predict similar movies for filmgoers to see. Here’s the data that the Fox team got from the model and its comparison with actual customer behavior.
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/movie-model-output-results.png&quot; style=&quot;height: 50%; width: 50%&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+On the left, you can see the Top 20 movies that a user who saw Logan was mostly likely to watch. On the right, you can see the Top 20 predictions made by the model. Astonishingly, the model got all of the Top 5 actual movies within its Top 20 predictions. As a result, it’s reasonable to believe that the model was able to distill the key characteristics of Logan in order to infer its own predictions. That’s the power of machine learning.
+</description>
+        <pubDate>Mon, 26 Aug 2019 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/machine_learning/2019/08/26/Machine-Learning-for-the-Movies.html</link>
+        <guid isPermaLink="true">http://localhost:4000/machine_learning/2019/08/26/Machine-Learning-for-the-Movies.html</guid>
+        
+        
+        <category>machine_learning</category>
+        
+      </item>
+    
+      <item>
+        <title>The Basics of Homology Theory</title>
+        <description>&lt;h1&gt;The Basics of Homology Theory&lt;/h1&gt;
+Algebraic topology is a field that seeks to establish 
+correspondences between algebraic structures and topological
+characteristics. It then uses results from algebra to infer
+and uncover results about topology. It's a pretty powerful method.
+&lt;/br&gt;&lt;/br&gt;
+Roughly speaking, AT provides two different frameworks for
+characterizing topological spaces. These are &lt;i&gt;homotopy&lt;/i&gt;
+and &lt;i&gt;homology&lt;/i&gt;. In this post, we'll start to take a look
+at homology, which differs from homotopy in that it's less
+powerful in some senses, but significantly easier to work with
+and compute which endows it with a different sort of power.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Some Definitions to Start&lt;/h2&gt;
+&lt;b&gt;&lt;u&gt;Definition&lt;/u&gt;&lt;/b&gt; Say we're working in $\mathbb{R}^n$. The &lt;i&gt;$p$-simplex&lt;/i&gt;, defined for $p \leq n$, is
+$$\Delta_p := \left\{x = \sum_{i=0}^p \lambda_i e_i \mid \sum_{i=0}^p \lambda_i\ = 1, \lambda_i \geq 0\right\}$$
+$\Delta_p$ is a generalization of the triangle to $p$ dimensions. Now, there are actually two types of homology
+which have developed in the annals of mathematics.
+The first of these is &lt;i&gt;singular homology&lt;/i&gt;, which concerns
+itself with the study of topological spaces via the mapping of
+simplices into these spaces. The other type is called
+&lt;i&gt;Cech homology&lt;/i&gt; which handles the study of topology via
+the approximation of topological spaces with spaces of a certain
+class, namely those which admit a triangulation. Of these two
+branches of homology, singular is by far the more prevalent in
+the literature and is the one we'll delve into here.
+&lt;/br&gt;&lt;/br&gt;
+Given a triangular polytope like we've defined in $\Delta_p$,
+one operation we might like to consider is using that region
+as a way to sort of define regions of interest around not just
+basis vectors, but any arbitrary collection of vectors in the space. Given such a set $\{v_0, \ldots, v_p\}$ we can denote
+by $[v_0, \ldots, v_p]$ the mapping of $\Delta_p \to \mathbb{R}^n$ defined by
+$$\sum_{i=0}^p \lambda_i e_i \to \sum_{i=0}^p \lambda_i v_i$$
+What this gives us from an intuitive perspective is the simplex
+expanded or shrunken to cover the span of the $v_i$. One nice
+property of this map is that its image is convex. We call the
+resulting simplex the &lt;i&gt;affine p-simplex&lt;/i&gt;, and we sometimes
+refer to the $\lambda_i$ in this context as &lt;i&gt;barycentric coordinates&lt;/i&gt;.
+&lt;/br&gt;&lt;/br&gt;
+In addition to mapping between simplices and sets of vectors,
+we'd like to define a way to map between a $p$-simplex and a
+($p + 1$)-simplex and vice versa. The mapping from
+$p$ to $p + 1$ is called the $i$th face map and is notated
+as
+$$F_i^{p+1} : \Delta_p \to \Delta_{p + 1}$$
+It is formed by deleting the $i$th vertex in dimension
+$p + 1$. To notate this, we can write $[e_0, \ldots, \hat{e_i}
+, \ldots, e_{p+1}]$ where the hat indicates that $e_i$ is
+omitted. This face map is so named because it embeds the
+$p$-simplex in the $p+1$-simplex as the face opposite $e_i$, the
+vertex that's being deleted.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;&lt;u&gt;Definition&lt;/u&gt;&lt;/b&gt; For a topological space $X$, a &lt;i&gt;
+singular $p$-simplex&lt;/i&gt; of $X$ is simply a continuous function
+$\sigma_p : \Delta_p \to X$.
+&lt;/br&gt;&lt;/br&gt;
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/singular2simplex.png&quot;&gt;&lt;/img&gt;
+	&lt;p&gt;The singular 2-simplex, mapping from the standard 2-simplex to $X$.&lt;/p&gt;
+&lt;/div&gt;
+Basically, our goal in defining the singular $p$-simplices is
+to provide a sort of &quot;basis&quot; for the triangulation of an 
+arbitrary topological space. In this way, the singular $p$-simplex gives us a way to cover some patch of $X$ with 
+a triangle-like region. Accordingly, we can define a group
+which in some sense acts like a vector space of these triangular
+basis regions. By allowing the linear combination of maps on 
+these elements, we can give entire triangulations of the space
+$X$. 
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;&lt;u&gt;Definition&lt;/u&gt;&lt;/b&gt; The &lt;i&gt;singular p-chain group
+$\Delta_p(X)$&lt;/i&gt; is the free abelian group that's generated by the singular $p$-simplices.
+&lt;/br&gt;&lt;/br&gt;
+In more concrete terms, the elements of $\Delta_p(X)$ are called
+$p$-chains and are simply linear combinations
+$$c = \sum_\sigma n_\sigma \sigma$$ of $p$-simplices with
+coefficients $n_\sigma$ coming from some ring (usually the
+integers).
+&lt;/br&gt;&lt;/br&gt;
+We can recover how the singular $p$-simplex maps the faces of
+$\Delta_p$ to $X$ by simply composing the map $\sigma$ with the
+face map $F_i^p$. This is called the &lt;i&gt;ith face of $\sigma$&lt;/i&gt;
+and is written
+$$\sigma^{(i)} = \sigma \circ F_i^p$$
+
+For a given singular $p$-simplex $\sigma$, we can defined a $(p-1)$-chain that gives the &lt;i&gt;boundary&lt;/i&gt; of $\sigma$ as
+$$\partial_p \sigma = \sum_{i=0}^p (-1)^i \sigma_p^{(i)}$$
+
+The boundary operator extends to chains in the natural way, by distributing over addition, $\partial_p c = \partial_p (\sum_\sigma n_\sigma \sigma) = \sum_\sigma n_\sigma \partial_p
+\sigma$. This law, in fact, makes $\partial_p$ into a 
+homomorphism of groups
+$$\partial_p : \Delta_p(X) \to \Delta_{p-1}(X)$$ 
+Now, we introduce a key fact about the boundary operator that
+will allow us to define homology groups. You should be well
+aware of the saying &quot;the enemy of my enemy is my friend&quot;.
+Well, in algebraic topology boundaries are our enemies and
+we have a similar statement, &quot;the boundary of my boundary is
+a loser (zero)&quot;. In other words, for any $\sigma$,
+$$\partial_p(\partial_{p + 1} \sigma) = 0$$
+I'll skip the proof for this because it's just a really nasty
+rearrangement of a complicated sum, but if you're truly
+interested you can find it in pretty much any algebraic 
+topology textbook.
+&lt;/br&gt;&lt;/br&gt;
+We call $im(\partial_{p+1}) = B_{p}(X)$ the
+&lt;i&gt;boundary group&lt;/i&gt; and $ker(\partial_p) = Z_p(X)$ the
+&lt;i&gt;cycle group&lt;/i&gt;. 
+Note that the above identity implies that $im(\partial_{p + 1})$ is a subgroup of $ker(\partial_p)$ which is equivalent
+to saying $B_p(C) \leq Z_p(C)$. 
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;The Homology Group&lt;/h2&gt;
+We define the $p$th &lt;i&gt;homology group&lt;/i&gt; as the quotient
+$$H_p(X) := Z_p(X) / B_p(X)$$
+In other words, this is the group of cycles modded out by
+the group of boundaries. To give a rough intuition, the
+rank of $H_p(X)$ tells us the number of $p$-dimensional
+&quot;holes&quot; contained in $X$. You can think about it as follows.
+If each cycle in $X$ is equivalent to some boundary, then
+those boundaries have no &quot;interior&quot; excisions. However, if a
+hole does exist, then there will be some discrepancy between
+boundaries and cycles, and the number of such discrepancies
+(holes) will be given by the rank of $H_p(X)$. 
+</description>
+        <pubDate>Thu, 13 Jun 2019 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/mathematics/2019/06/13/The-Basics-Of-Homology-Theory.html</link>
+        <guid isPermaLink="true">http://localhost:4000/mathematics/2019/06/13/The-Basics-Of-Homology-Theory.html</guid>
+        
+        
+        <category>mathematics</category>
+        
+      </item>
+    
+      <item>
+        <title>The Problem with Policy Gradient</title>
+        <description>&lt;h1 align=&quot;middle&quot;&gt;The Problem(s) with Policy Gradient&lt;/h1&gt;
+If you've read my &lt;a href=&quot;http://mcneela.github.io/math/2018/04/18/A-Tutorial-on-the-REINFORCE-Algorithm.html&quot;&gt;article&lt;/a&gt;
+about the REINFORCE algorithm, you should be familiar with the update that's typically used in policy gradient methods.
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+\left[ \left(\sum_{t} \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_t r(s_t, a_t)\right)\right]$$
+It's an extremely elegant and theoretically satisfying model that suffers from only one problem - it doesn't work well in practice.
+Shocking, I know! Jokes abound about the flimsiness that occurs when policy gradient methods are applied to practical problems.
+One such joke goes like this: if you'd like to reproduce the results of any sort of RL policy gradient method as reported in academic
+papers, make sure you contact the authors and get the settings they used for their random seed. Indeed, sometimes policy gradient can
+feel like nothing more than random search dressed up in mathematical formalism. The reasons for this are at least threefold 
+(I won't rule out the possibility that there are more problems with this method of which I'm not yet aware), namely that
+&lt;/br&gt;&lt;/br&gt;
+&lt;ol&gt;
+	&lt;li&gt;Policy gradient is &lt;b&gt;high variance&lt;/b&gt;.&lt;/li&gt;
+	&lt;li&gt;Convergence in policy gradient algorithms is &lt;b&gt;sloooow&lt;/b&gt;.&lt;/li&gt;
+	&lt;li&gt;Policy gradient is terribly &lt;b&gt;sample inefficient&lt;/b&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+I'll walk through each of these in reverse because flouting the natural order of things is fun. :)
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;Sample Inefficiency&lt;/h3&gt;
+In order to get anything useful out of policy gradient, it's necessary to sample from your policy and observe the resultant reward
+literally &lt;i&gt;millions of times&lt;/i&gt;. Because we're sampling directly from the policy we're optimizing, we say that policy gradient
+is an &lt;i&gt;on-policy&lt;/i&gt; algorithm.
+If you take a look at the formula for the gradient update, we're calculating an expectation and 
+we're doing that in the Monte Carlo way, by averaging over a number of trial runs. Within that, we have to sum over all the steps in
+a single trajectory which itself could be frustratingly expensive to run depending on the nature of the environment you're working
+with. So we're iterating sums over sums, and the result is that we incur hugely expensive computational costs in order to acquire
+anything useful. This works fine in the realms where policy gradient has been successfully applied. If all you're interested
+in is training your computer to play Atari games, then policy gradient might not be a terrible choice. However, imagine using this
+process in anything remotely resembling a real-world task, like training a robotic arm to perform open-heart surgery, perhaps?
+Hello, medical malpractice lawsuits. However, sample inefficiency is not a problem that's unique to policy gradient methods by any
+means. It's an issue that plagues many different RL algorithms, and addressing this is key to generating a model that's useful
+in the real world. If you're interested in sample efficient RL algorithms, check out 
+&lt;a href=&quot;https://www.microsoft.com/en-us/research/blog/provably-efficient-reinforcement-learning-with-rich-observations/?ocid=msr_blog_provably_icml_hero&quot;&gt;the work&lt;/a&gt; that's being
+done at Microsoft Research.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;Slow Convergence&lt;/h3&gt;
+This issue pretty much goes hand in hand with the sample inefficiency discussed above and the problem of high variance to be
+discussed below. Having to sample entire trajectories on-policy before each gradient update is slow to begin with, and the
+high variance in the updates makes the search optimization highly inefficient which means more sampling which means more updates,
+ad infinitum. We'll discuss some remedies for this in the next section. 
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;High Variance&lt;/h3&gt;
+The updates made by the policy gradient are very high variance. To get a sense for why this is, first considering that in RL we're
+dealing with highly general problems such as teaching a car to navigate through an unpredictable environment or programming an agent
+to perform well across a diverse set of video games. Therefore, when we're sampling multiple trajectories from our untrained policy
+we're bound to observe highly variable behaviors. Without any a priori model of the system we're seeking to optimize, we begin with
+a policy whose distribution of actions over a given state is effectively uniform. Of course, as we train the model we hope to shape
+the probability density so that it's unimodal on a single action, or possibly multimodal over a few successful actions that can be
+taken in that state. However, acquiring this knowledge requires our model to observe the outcomes of many different actions taken 
+in many different states. This is made exponentially worse in continuous action or state spaces as visiting even close to every
+state-action pair is computationally intractable. Due to the fact that we're using Monte Carlo estimates in policy gradient, we
+trade off between computational feasibility and gradient accuracy. It's a fine line to walk, which is why variance reduction techniques
+can potentially yield huge payoffs. 
+&lt;/br&gt;&lt;/br&gt;
+Another way to think about the variance introduced into the policy gradient update is as follows: at each time step in your trajectory
+you're observing some stochastic event. Each such event has some noise, and the accumulation of even a small amount of noise across
+a number of time steps results in a high variance outcome. Yet, understanding this allows us to suggest some ways to alter policy
+gradient so that the variance might ultimately be reduced.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h1 align=&quot;middle&quot;&gt;Improvements to Policy Gradient&lt;/h1&gt;
+&lt;h3&gt;Reward to Go&lt;/h3&gt;
+The first &quot;tweak&quot; we can use is incredibly simple. Let's take a look again at that policy gradient update.
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+\left[ \left(\sum_{t} \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_t r(s_t, a_t)\right)\right]$$
+If we break it down into the Monte Carlo estimate, we get
+$$\nabla_\theta J(\theta) = 
+\frac{1}{N} \sum_{i=1}^N \left[ \left(\sum_{t=1}^T \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_{t=1}^T r(s_t, a_t)\right)\right]$$
+If we distribute $\sum_{t=1}^T r(s_t, a_t)$ into the left innermost sum involving $\nabla \log \pi_{\theta}$, we see that we're 
+taking the gradient of $\log \pi_\theta$ at a given time step $t$ and weighting it by the sum of rewards at all timesteps. However,
+it would make a lot more sense to simply reweight this gradient by the rewards it affects. In other words, the action taken at time
+$t$ can only influence the rewards accrued at time $t$ and beyond. To that end, we replace $\sum_{t=1}^T r(s_t, a_t)$ in the gradient 
+update with the partial sum $\sum_{t'=t}^T r(s_{t'}, a_{t'})$ and call this quantity $\hat{Q}_{t}$ or the &quot;reward to go&quot;. This quantity
+ is closely related to the $Q$ function, hence the similarity in notation. For clarity, the entire policy gradient update now becomes
+$$\frac{1}{N} \sum_{i=1}^N \left[ \left(\sum_{t=1}^T \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_{t=t'}^T r(s_{t'}, a_{t'})\right)\right]$$
+&lt;h3&gt;Baselines&lt;/h3&gt;
+The next technique for reducing variance is not quite as obvious but still yields great results. If you think about how policy gradient
+works, you'll notice that how we take our optimization step depends heavily on the reward function we choose. Given a trajectory $\tau$,
+if we have a negative return $r(\tau) = \sum_{t} r(s_t, a_t)$ then we'll actually take a step in the direction opposite the gradient,
+which should have the effect of lessening the probability density on the trajectory. For those trajectories that have positive return,
+their probability density will increase. However, if we do something as simple as setting $r(\tau) = r(\tau) + b$ where $b$ is a
+sufficiently large constant such that the return for $r(\tau)$ is now positive, then we will actually increase the probability weight on
+$\tau$ even though $\tau$ still fares worse than other trajectories with previously positive return. Given how sensitive the model is
+to the shifting and scaling of the chosen reward function, it's natural to ask whether we can find an optimal $b$ such that
+(note: we're using trajectories here so some of the sums from the original PG formulation are condensed)
+$$\frac{1}{N} \sum_{i=1}^N \nabla_\theta \log \pi_\theta(\tau_i) [r(\tau_i) - b]$$
+has minimum variance. We call such a $b$ a &lt;i&gt;baseline&lt;/i&gt;.
+We also want to ensure that subtracting $b$ in this way doesn't bias our estimate of the gradient. Let's do that
+first. Recall the identity we used in the original policy gradient derivation
+$$\pi_\theta(\tau) \nabla \log \pi_\theta(\tau) = \nabla \pi_\theta(\tau)$$
+To show that our estimator remains unbiased, we need to
+show that 
+	$$\mathbb{E}\left[\nabla \log \pi_\theta(\tau_i)[r(\tau_i) - b]\right] = \mathbb{E} [\nabla \log \pi_\theta(\tau_i)]$$
+We can equivalently show that $\mathbb{E} [\nabla \log \pi_\theta(\tau_i) b]$ is equal to zero. We have
+\begin{align*}
+	\mathbb{E} [\nabla \log \pi_\theta(\tau_i) b]
+	  &amp;= \int \pi_\theta(\tau_i) \nabla \log \pi_\theta(\tau_i) b \ d\tau_i \\
+	  &amp;= \int \nabla \pi_\theta(\tau_i) b \ d\tau_i \\
+	  &amp;= \nabla b \int \pi_\theta(\tau_i) \ d\tau_i \\
+	  &amp;= \nabla b 1 \\
+	  &amp;= 0
+\end{align*}
+where we use the fact that $\int \pi_\theta(\tau_i) \ d\tau_i$ 
+is 1 because $\pi_\theta$ is a probability distribution.
+Therefore, our baseline enhanced version of the policy gradient
+remains unbiased.
+&lt;/br&gt;&lt;/br&gt;
+The question then becomes, how do we choose an optimal setting
+of $b$. One natural candidate is the average reward
+$b = \frac{1}{N} \sum_{i=1}^N r(\tau_i)$ over all trajectories
+in the simulation. In this case, our returns are &quot;centered&quot;,
+and returns that are better than average end up being
+positively weighted whereas those that are worse are negatively
+weighted. This actually works quite well, but it is not, in fact, optimal. To calculate the optimal setting, let's look at
+the policy gradient's variance. In general, we have
+\begin{align*}
+	Var[x] &amp;= \mathbb{E}[x^2] - \mathbb{E}[x]^2 \\
+	\nabla J(\theta) &amp;= \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+	\left[ \nabla \log \pi_\theta(\tau) (r(\tau) - b)\right] \\
+	Var[\nabla J(\theta)] &amp;= \mathbb{E}_{\tau \sim \pi_\theta(\tau)} \left[(\nabla \log \pi_\theta(\tau) (r(\tau) - b))^2\right] - \mathbb{E}_{\tau \sim \pi_\theta(\tau)} \left[ \nabla_\theta \log \pi_\theta(\tau) (r(\tau) - b)\right]^2
+\end{align*}
+The rightmost term in this expression is just the square of the
+policy gradient, which for the purposes of optimizing $b$ we
+can ignore since baselines are biased in expectation. Therefore, we turn our attention to the left term.
+To simplify notation, we can write
+$$g(\tau) = \nabla \log \pi_\theta(\tau)$$
+Then we take the derivative to get
+\begin{align*}
+	\frac{dVar}{db} &amp;= \frac{d}{db} \mathbb{E}\left[ 
+	g(\tau)^2(r(\tau) - b)^2\right] \\
+	&amp;= \frac{d}{db}(\mathbb{E}[g(\tau)^2r(\tau)^2] - 2
+	\mathbb{E}[g(\tau)^2r(\tau)b] + b^2\mathbb{E}[g(\tau)^2]) \\
+	&amp;= 0 -2\mathbb{E}[g(\tau)^2r(\tau)] + 2b\mathbb{E}[g(\tau)^2]
+\end{align*}
+Solving for $b$ in the final equation gives
+$$b = \frac{\mathbb{E}[g(\tau)^2r(\tau)]}{\mathbb{E}[g(\tau)^2]}
+$$
+In other words, the optimal setting for $b$ is to take the
+expected reward but reweight it by expected gradient magnitudes.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+Hopefully this provided you with a good overview as to how
+you can improve implementations of policy gradient to speed
+up convergence and reduce variance. In a future article, I'll
+discuss how to derive an off-policy version of policy gradient
+which improves sample efficiency and speeds up convergence.
+</description>
+        <pubDate>Mon, 03 Jun 2019 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/machine_learning/2019/06/03/The-Problem-With-Policy-Gradient.html</link>
+        <guid isPermaLink="true">http://localhost:4000/machine_learning/2019/06/03/The-Problem-With-Policy-Gradient.html</guid>
+        
+        
+        <category>machine_learning</category>
+        
+      </item>
+    
+      <item>
+        <title>The Variant Calling Problem</title>
+        <description>&lt;h1&gt;The Variant Calling Problem&lt;/h1&gt;
+In bioinformatics, particularly in the subfield of oncology in which I work, we're often tasked with the issue of identifying variants
+in a genomic sequence. What this means is that we have a sample sequence along with a &lt;i&gt;reference sequence&lt;/i&gt;, and we want to identify
+regions where the sample differs from the reference. These regions are called &lt;i&gt;variants&lt;/i&gt;, and they can often be clinically 
+relevant, potentially indicating an oncogenic mutation or some
+other telling clinical marker.
+&lt;/br&gt;&lt;/br&gt;
+In general, there are two types of variant calling that one may be interested in performing. The first of these is called
+&lt;i&gt;germline variant calling&lt;/i&gt;. In this type, we use a reference genome that is an accepted standard for the species in
+question. There exists more than one acceptable choice for a reference genome, but one of the current standards for humans
+is called &lt;i&gt;GRCh38&lt;/i&gt;. This stands for &lt;i&gt;Genome Reference Consortium human&lt;/i&gt; and 38 is an identifying version number.
+Note the &lt;i&gt;h&lt;/i&gt; is used to distinguish the human genome from other genomes that the GRC puts out such as &lt;i&gt;GRCm&lt;/i&gt;
+(mouse genome).
+&lt;/br&gt;&lt;/br&gt;
+The second type is called &lt;i&gt;somatic variant calling&lt;/i&gt;. This
+method uses two samples from a single individual and compares
+the sequence of one with the other. In effect, the patients own
+genome serves as the reference. This is the method commonly used
+in oncology, as one sample can be taken from a tumor and another
+from some non-mutated cell such as the bloodline. This process
+is also sometimes called a &lt;i&gt;tumor-normal&lt;/i&gt; study due to the
+fact that one sample is taken from the tumor and one from a 
+normal cell.
+&lt;/br&gt;&lt;/br&gt;
+There are a few additional things to note in the discussion 
+above. The first is that in germline calling we're uncovering
+variants that are being &lt;i&gt;passed from parent to child&lt;/i&gt; via
+the germ cells, i.e. the sperm and eggs. In somatic calling,
+we're identifying somatic mutations and variants, those that
+occur within the body over the course of a lifetime, whether
+they are due to environmental factors, errors in DNA
+ transcription and translation, or some other factor.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Types of Variants&lt;/h2&gt;
+In order to identify variants, it will be helpful to develop
+an ontology of some of the specific classes and types of
+variants we might expect to see as the output of our variant
+callers.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;Indel&lt;/b&gt; - This is one of the simplest types of variant
+to describe conceptually, but also one of the most difficult
+to identify via current variant calling methods. An &lt;i&gt;indel&lt;/i&gt;
+is either an insertion or deletion of a single base at some
+point in the DNA sequence. The reason these are difficult to
+identify is that since it is not known in advance at which
+point in the DNA the variant occurs, it can throw off the
+alignment with the reference sequence.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;SNP&lt;/b&gt; - This is short for &lt;i&gt;single nucleotide polymorphism
+&lt;/i&gt; and it refers to a population-level variant in which a
+single base differs between the sample and reference sequences.
+By population-level, we mean that this variant is extremely
+common across specific populations. For example, an SNP might
+occur when comparing the genomes of Caucasian and Chinese people
+within a gene coding for skin tone.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;SNV&lt;/b&gt; - This stands for &lt;i&gt;single-nucleotide variant&lt;/i&gt;
+and is the same as an SNP apart from the fact that it indicates
+a novel mutation present in the genomes of a few rather than
+being widespread across a population.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;Structural Variant&lt;/b&gt; - A &lt;i&gt;structural variant&lt;/i&gt; refers
+to a larger-scale variant in the genome, typically occupying at
+least 1000 base pairs. These can exhibit a number of different
+behaviors. For example, a &gt;1kb region of the DNA can be 
+duplicated and reinserted or it can be deleted. These types of
+structural variation are commonly referred to as
+&lt;i&gt;copy number variants (CNVs)&lt;/i&gt;. A partial sequence can also
+be reversed (called &lt;i&gt;inversion&lt;/i&gt;). This image sums it up
+well
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/structural_variation.png&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+&lt;!-- &lt;p align=&quot;middle&quot;&gt;&lt;i&gt;(Credit: The European Bioinformatics Institute)&lt;/i&gt;&lt;/p&gt; --&gt;
+&lt;h2&gt;Haplotype Phasing&lt;/h2&gt;
+Before getting into the nitty gritty of variant calling, it will be helpful to describe a related process called
+&lt;i&gt;haplotype phasing&lt;/i&gt;. A &lt;i&gt;haplotype&lt;/i&gt; is the set of genetic information associated with a single chromosome.
+The human genome is &lt;i&gt;diploid&lt;/i&gt;, meaning it consists of pairs of chromosomes for which each has one part of its genetic information
+inherited from the mother and the other part from the father. The combined genetic information resulting from considering these
+pairs of chromosomes as single units is called the &lt;i&gt;genotype&lt;/i&gt;. However, having access to the haplotype can be crucial because
+it can provide information crucial to identifying disease-causing variants (either SNPs or SNVs) in the genome. The issue is that
+current sequencing methods don't give us haplotype information for free as often the reads produced cannot be separated into
+their individual male and female loci. Therefore, we need to use statistical algorithms to piece together what we can about the
+haplotype sequences after the fact. This is where haplotype phasing comes into play.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;Some Preliminaries and Associated Challenges&lt;/h3&gt;
+To start with, we need to establish some background with regards to population-level frequencies of genetic variation so that we
+can begin to detect deviations from that standard. What may be surprising is that while the human genome is diploid, it varies
+from the reference at approximately 0.1% of the bases. That means that between any two individuals, we should expect to see at
+least 99.9% shared genetic information. It is at the remaining 0.1% of sites that we direct our attention when we're looking to
+tease out the haplotypes. For reference, the condition of sharing genetic information is often called &lt;i&gt;homology&lt;/i&gt;.
+&lt;/br&gt;&lt;/br&gt;
+The teasing out of haplotypes is complicated by the fact that at times genetic information is passed from parent to child in a
+process known as &lt;i&gt;recombination&lt;/i&gt;. Recombination happens when instead of passing down just one chromosome from its diploid
+pair, a parent passes down a combination of the two. At the biological level, this process occurs during &lt;i&gt;meiosis&lt;/i&gt;. The
+first phase of meiosis involves an alignment of homologous chromosome pairs between the mother and father. This process involves
+a stage in which the chromosomal arms temporarily overlap, causing a crossover which may (or may not) result in fusion at that
+locus at which the point of crossover occurs. This results in a recombination of genetic information which is then passed down
+to the child. One benefit to this process is that it encourages genetic diversity, creating genetic patterns in the child that
+appeared in neither parent. Unfortunately, it also makes haplotype phasing that much more difficult.
+&lt;/br&gt;&lt;/br&gt;
+DNA sequencing gives partial haplotype information. It produces sequencing &lt;i&gt;reads&lt;/i&gt; which are partial strings of the sequence up to
+1000 base pairs. These reads all come from the same chromosome, but they represent only a small slice of the haplotype because the
+entire chromosome is on the order of 50 million to 250 million base pairs.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;Advantages of Knowing the Haplotype&lt;/h3&gt;
+Hopefully it's clear that having access to the haplotype for any given individual is strictly superior to simply having the genotype.
+This is because, given access to a person's haplotype, we can simply combine that information in a procedural way to yield their
+genotype. The same cannot be said of the reverse. What's more, having the haplotype allows us to compute statistics about various
+biological properties that would otherwise be unavailable to use. For example, if we have haplotypes for a series of individuals
+in a population, we can check at which loci recombination is most likely to occur, what the frequency of that recombination is, etc.
+It suffices to say that having access to the haplotype is highly advantageous as a downstream input to variant calling methods, and
+I'll examine some such methods that make use of this information in upcoming posts.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;The DeepVariant Caller&lt;/h2&gt;
+Now that we have an understanding of haplotypes and some of the different ways in which variants might arise, I'd like to introduce
+one of the most successful models for variant calling created to-date: Google's &lt;i&gt;DeepVariant&lt;/i&gt;. This model is one of the simplest
+to introduce in that it uses virtually no specialized knowledge of genomics in terms of encoding input features. Surprisingly, this
+has no detrimental effect on its accuracy, as it outperformed virtually every other variant caller on the market at the time of its
+release. The approach it uses is somewhat novel so I'll introduce that here, and I'll compare it in subsequent posts with the 
+methodology behind other variant callers.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;How it Works&lt;/h3&gt;
+&lt;i&gt;DeepVariant&lt;/i&gt; is unique in that it doesn't operate on the textual sequence information of the aligned and reference genomic reads.
+Rather, it creates something called a &lt;i&gt;pileup image&lt;/i&gt; from the alignment information. A pileup image shows the sequenced reads from
+the sample aligned with the reference. Each base is assigned an RGB color, and possible variants within the reads as compared to the
+reference are highlighted accordingly. Here's an example of what a pileup looks like.
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/pileup.jpg&quot; width=&quot;90%&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+&lt;!-- &lt;p align=&quot;middle&quot;&gt;&lt;i&gt;(Credit: Melbourne Bioinformatics)&lt;/i&gt;&lt;/p&gt; --&gt;
+The DeepVariant model is trained on a large dataset of such images in which variants have already been labeled. It can then be applied
+to new alignments and samples by generating their pileup using a program such as SAMTOOLS. Here's how the authors from Google
+structured their model.
+&lt;div align=&quot;middle&quot;&gt;
+	&lt;img src=&quot;/images/deepvariant.png&quot; width=&quot;&quot;&gt;&lt;/img&gt;
+&lt;/div&gt;
+As you can see from the diagram, their workflow proceeds as follows:
+&lt;ol&gt;
+	&lt;li&gt;Identifying Candidate Variants and Generating Pileup: Candidate variants are identified according to a simple procedure. The
+		reads are aligned to the reference, and in each case the CIGAR string for the read is generated. Based on how that read 
+		compares to the reference at the point which it is aligned, it is classified as either a match, an SNV, an insertion, or a
+		deletion. If the number of reads which differ at that base pass a pre-defined threshold, then that site is identified as a
+		potential variant. The authors also apply some preprocessing to ensure that the reads under consideration are of high enough
+		quality and are aligned properly in order to be considered. After candidate variants have been identified, the pileup image is 
+		generated. The notable points here are that candidate variants are colored and areas with excessive coverage are downsampled
+	prior to image generation.&lt;/li&gt;
+	&lt;li&gt;The model is trained on the data, then run during inference stages. They use a CNN, specifically the Inception v2 architecture,
+		which takes in a 299x299 input pileup image and uses an output softmax layer to classify into one of hom-ref, het, or hom-alt.
+		They use SGD to train with a batch size of 32 and RMS decay set to 0.9. They initialize the CNN to using the weights from one
+		of the ImageNet models.&lt;/li&gt;
+&lt;/ol&gt;
+The authors find that their model generalizes well, and can be used with no statistically significant loss in accuracy on reads aligned
+to a reference different from the one on which &lt;i&gt;DeepVariant&lt;/i&gt; was trained. They also stumble upon another surprising result, namely
+that their model successfully calls variants on the mouse genome, opening up the model's to a wide diversity of species. 
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+I hope this post shed some light on how variant calling works and elucidates the biological underpinnings of the process well enough
+for newcomers to the field to start diving into some papers. In future posts, I'll expand on some of the other popular variant calling
+models as well as introduce algorithms for related processes, such as the haplotype phasing discussed earlier.
+</description>
+        <pubDate>Sun, 26 May 2019 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/bioinformatics/2019/05/26/Variant-Calling-Methods.html</link>
+        <guid isPermaLink="true">http://localhost:4000/bioinformatics/2019/05/26/Variant-Calling-Methods.html</guid>
+        
+        
+        <category>bioinformatics</category>
+        
+      </item>
+    
+      <item>
+        <title>A Bit About Manifolds</title>
+        <description>&lt;b&gt; Work In Progress! &lt;/b&gt;
+&lt;h1&gt;A Bit About Manifolds&lt;/h1&gt;
+A &lt;i&gt;manifold&lt;/i&gt;, in the broadest sense, is a structure which is locally homeomorphic to $\mathbb{R}^n$
+at each of its open sets. In layman's terms, this means that while a manifold may be sufficiently &quot;abstracted&quot;
+such that its elements look nothing like those of $\mathbb{R}^n$, we can regardless treat the manifold as if
+it's $\mathbb{R}^n$, with a few potential caveats. But first, the formal definition.
+&lt;/br&gt;&lt;/br&gt;
+&lt;u&gt;&lt;b&gt;Definition 1&lt;/b&gt;&lt;/u&gt; A &lt;i&gt;manifold&lt;/i&gt; is a second countable Hausdorff space $M$ equipped with a collection of
+&quot;charts&quot; (called an atlas) such that for each open $U \subset M$ there exists a homeomorphism $\phi: U \to V \subset \mathbb{R}^n$
+where $V$ is itself open. This $\phi$ is called a chart. We require that each $x \in M$ be in the domain of some
+chart. We require that the collection of charts be maximal subject to the conditions above.
+&lt;/br&gt;&lt;/br&gt;
+If we want to be able to perform calculus on our manifolds, however, a bit more is required.
+&lt;/br&gt;&lt;/br&gt;
+&lt;u&gt;&lt;b&gt;Definition 2&lt;/b&gt;&lt;/u&gt; A &lt;i&gt;smooth&lt;/i&gt; ($C^\infty$) manifold is a manifold with the additional
+restriction that the change of coordinates defined by the composition of one chart and another's inverse is itself
+$C^\infty$. That is, we require for two charts $\phi$ and $\psi$ that given $\phi: U \to U' \subset \mathbb{R}^n, \psi: V \to V' \subset \mathbb{R}^n$, the following be continuously differentiable of all orders
+
+$$\phi \psi^{-1} : \psi (U \cap V) \to \phi (U \cap V)$$
+
+Both of these definitions look like quite the mouthful at first, but there's really little in the way of hidden complexity.
+The defacto differentiability requirements on the change of coordinates mappings make inherent sense. If this differentiability
+was not presupposed, there'd be nothing restricting the manifold from being put together as a patchwork of locally smooth
+neighborhoods that don't inherently connect in a &quot;nice&quot; way, i.e. there may exist discontinuities at the points where they join.
+&lt;/br&gt;&lt;/br&gt;
+The notion of second countability may throw some for a loop, so I'll take some time to review it. A topological space is called
+second countable if it exhibits a countable base $\mathcal{B} = \bigcup_{i=1}^\infty B_i$. This is a property that's characteristic
+of many conventionally &quot;nice&quot; mathematical spaces, and its presence in this definition is a natural consequence of the homeomorphicity
+with $\mathbb{R}^n$. $\mathbb{R}^n$ is second countable, and second countability is a topological invariant. More concretely,
+since there exists a countable collection of open sets $\mathcal{B}$ which form a base for $\mathbb{R}^n$, we can take this collection and form
+its equivalent in $M$ by applying the appropriate inverse chart $U_i = \phi_i^{-1}(B_i)$ for $B_i \in \mathcal{B}$ to get a countable
+base $\mathcal{U} = \bigcup_{i=1}^\infty U_i$ for $M$.
+&lt;/br&gt;&lt;/br&gt;
+Similarly, when we look at the Hausdorff condition in the manifold definition, it follows naturally from the homeomorphic nature of
+the neighborhoods of the manifold with those of $\mathbb{R}^n$. Recall that a Hausdorff space is one for which every pair of distinct
+points there exists a corresponding pair of disjoint neighborhoods of those points. This is another standard regularity condition which
+is also a topological invariant.
+&lt;/br&gt;&lt;/br&gt;
+A slightly more general way of thinking about manifolds is to consider them as topological spaces endowed with some additional structure
+which varies based on the specific type of manifold under consideration. We can denote this as a pair $(T, S)$ where $T$ is the space
+and $S$ is the structure. For example, we can specify the smooth $n$-dimensional real manifold as the pair $(\mathbb{R}^n, C^\infty)$.
+When viewed in this light, any map from one manifold to a counterpart which &quot;satisfies&quot; the underlying structure of the two spaces is
+called a &lt;i&gt;morphism&lt;/i&gt;. We can further refine this set by considering only those morphisms whose inverses are themselves morphisms.
+A map satisfying this additional condition is called an &lt;i&gt;isomorphism&lt;/i&gt;. As an example, for standard manifolds the canonical 
+isomorphisms are the homeomorphisms. For smooth manifolds, the isomorphisms are diffeomorphisms. To formalize this, we define the 
+following.
+&lt;/br&gt;&lt;/br&gt;
+&lt;u&gt;&lt;b&gt;Definition&lt;/b&gt;&lt;/u&gt; Suppose $X$ is a topological structure. We say that the function $F_X$ is a &lt;i&gt;functional structure&lt;/i&gt; on $X$
+ if and only if for all open $U \subset X$
+i&lt;/br&gt;&lt;/br&gt;
+1. $F_X(U)$ is a subalgebra of the algebra of all continuous real-valued functions on $U$.&lt;/br&gt;
+2. $F_X(U)$ contains all constant functions.&lt;/br&gt;
+3. $V \subset U, f \in F_X(U) \implies f|_V \in F_X(V)$&lt;/br&gt;
+4. $U = \bigcup U_\alpha$ and $f|_{U_\alpha} \in F_X(U_\alpha)$ for all $\alpha \implies f \in F_X(U)$.
+&lt;/br&gt;&lt;/br&gt;
+Then the notions of morphism and isomorphism can be formulated accordingly as...
+&lt;/br&gt;&lt;/br&gt;
+&lt;u&gt;&lt;b&gt;Definition&lt;/b&gt;&lt;/u&gt; A &lt;i&gt;morphism&lt;/i&gt; of functionally structured spaces
+$$(X, F_X) \to (Y, F_Y)$$
+is a map $\phi:X \to Y$ such that composition $f \to f \circ \phi$ carries $F_Y(U)$ into $F_X(\phi^{-1}(U))$. An isomorphism is a morphism $\phi$ such that $\phi^{-1}$ exists as a morphism.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;Tangent Spaces, Differentials, and All Things Adjacent&lt;/h2&gt;
+The fundamental concept of differential calculus is the derivative, which allows us to compute the line tangent to a curve at any
+given point. The analogue for manifolds is the differential, which allows us to define tangent vectors to arbitrary trajectories
+along a surface. It will turn out that the set of these vectors in fact comprises a vector space
+&lt;/br&gt;&lt;/br&gt;
+&lt;u&gt;&lt;b&gt;Definition&lt;/b&gt;&lt;/u&gt; Take a smooth manifold $M$ and a smooth, parametrized curve $\gamma: \mathbb{R} \to M$ satisfying
+$\gamma(0) = p$. Let $f$ be a smooth function defined on an open neighborhood of $p$. Then we define the &lt;i&gt;directional derivative&lt;/i&gt;
+of $f$ along $\gamma$ at $p$ to be
+$$D_\gamma(f) = \frac{d}{dt} f(\gamma(t))|_{t=0}$$
+We call the operator $D_\gamma$ the &lt;i&gt;tangent vector&lt;/i&gt; to $\gamma$ at $p$. For a point $p \in M$ we denote by $T_p(M)$ the vector
+space of all tangent vectors to $M$ at $p$.
+&lt;/br&gt;&lt;/br&gt;
+To understand the operator $D_\gamma$ in a more global context, it behooves us to introduce &lt;i&gt;algebras&lt;/i&gt;. Algebras exist as a simple
+extension of vector spaces. Specifically, they are vector spaces having an associated bilinear product. That is they take elements from
+two vector spaces and the product mapping sends these to a third vector space. In order to understand this view of derivatives along
+manifolds, we need to present the algebra on which the tangent operator is defined.
+&lt;/br&gt;&lt;/br&gt;
+To do so, consider the following definition. Suppose you have a smooth, real-valued function $f:M \to Y$ defined at some point $p \in M$ where
+$M$ is a smooth manifold. We call the equivalence class of $f$ defined under the equivalence relation 
+$f_1 \sim f_2 \iff f_1(x) = f_2(x)$ for all $x$ in a neighborhood $U$ of $p$ a &lt;i&gt;germ&lt;/i&gt;. We can extend the notion 
+of a germ to sets $S$ and $T$ via the relation $S \sim_p T$ if there exists a neighborhood $U$ of $p$ such that 
+$$S \cap U = T \cap U \neq \emptyset$$
+The way we're defining a germ here is more specific than is necessary. Germs are
+a more general concept which capture notions of local equivalence via some property for objects acting on a topological space. 
+Most often these objects are functions or maps with some sort of additional structure, e.g. smoothness or continuity, although this is
+not strictly necessary. To define a germ one needs only a notion of equality and a topological space, as these are the most abstract
+structures which allow us to define notions of locality via neighborhoods. When discussing germ equivalence between two maps $f$ and
+$g$ we can consider that these maps need not be defined on the same domain, provided some caveats are satisfied. We require that
+if $f$ has domain $S$ and $g$ has domain $T$ then $S$ and $T$ are germ equivalent via the definition for sets given above. We also
+require that $f|_{S \cap V} = g|_{T \cap V}$ for some smaller neighborhood $V$ of $p$ satisfying $p \in V \subseteq U$.
+&lt;/br&gt;&lt;/br&gt;
+We denote the germ at $p$ of a function $f$ as $[f]_p$ and we denote the equivalence relation it defines as $f \sim_p g$.
+&lt;/br&gt;&lt;/br&gt;
+A &lt;b&gt;$K$-linear derivation&lt;/b&gt; $D:A_1 \to A_2$ where $A_1, A_2$ are algebras is a a $K$-linear map satisfying the product rule
+$$D(ab) = aD(b) + D(a)b$$
+&lt;h3&gt;Defining Tangent Vectors via Derivations&lt;/h3&gt;
+Suppose $M$ is a $C^\infty$ manifold. For any $x \in M$ we define a &lt;b&gt;derivation&lt;/b&gt; by choosing a linear map $D:C^\infty(M) \to 
+\mathbb{R}^n$ satisfying 
+$$\forall f, g \in C^\infty(M) \quad D(fg) = f(x)D(g) + D(f)g(x)$$
+We can define addition and scalar multiplication on the set of derivations in the same way we do for elements of a vector space. 
+We call the vector space obtained the tangent space to $x$ in $M$ and denote it as $T_x(M)$.
+&lt;/br&gt;&lt;/br&gt;
+Let $\gamma: (-1, 1) \to M$ be a differentiable curve with $\gamma(0) = x$. Then the derivation $D_\gamma$ at $x$ is defined by
+$D_\gamma(f) := (f \circ \gamma)'(0)$
+&lt;/br&gt;&lt;/br&gt;
+&lt;h3&gt;Getting Infinitesimal with Differentials&lt;/h3&gt;
+When calculus is taught, the notion of a &lt;i&gt;differential&lt;/i&gt; is frequently introduced and is usually vaguely described as the
+infinitesimal change in some variable. Haphazard teachers may introduce the chain rule by making generalizations such as
+that one can cancel differentials like $dx$ in the equation 
+$$\frac{df}{dz} = \frac{df}{dx} \frac{dx}{dz}$$
+but this isn't entirely true, or at least it doesn't tell the whole story. We also see the differential pop up in the notation for
+integration, i.e. we write $\int_{a}^b f(x) \ dx$ but we never really explain what the differential is and what it's doing there.
+&lt;/br&gt;&lt;/br&gt;
+The general structure in which differential geometry operates makes things much clearer. What we'll see is that the differential
+is actually an object which instructs us in how to map between the tangent spaces of different manifolds. The differential is
+defined with respect to such a smooth map. In fact, the differential is an operator that takes in a map between manifolds and
+spits out a map between their tangent spaces. For more specifics, let's get to the definition.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;&lt;u&gt;Definition&lt;/u&gt;&lt;/b&gt; Let $\phi : M \to N$ be a smooth map between manifolds. Then we say the the differential of $\phi$ is
+the linear map $d\phi$ satisfying
+$$d\phi(D)(g) = D(g \circ \phi)$$
+and also satisfying
+$$d\phi d\psi = d(\phi \circ \psi)$$
+&lt;h3&gt;Taking this Tangent Thing a Step Further - Tangent Bundles&lt;/h3&gt;
+Before giving the formal definition, I'd like to give a brief intuitive explanation of what a tangent bundle constitutes. The
+tangent bundle is unique in that it is itself a manifold $T(M)$, obtained by construction from the tangent spaces at each point
+of some different manifold $M$. It can also be thought of as a cartesian product between points $p \in M$ and the associated tangent
+ vectors $v_p \in T_p(M)$. The cartesian product formulation naturally gives rise to a projection map $\pi:T(M) \to M$ from the 
+ tangent bundle back to the manifold from whence it was constructed. Formally, we define the &lt;i&gt;tangent bundle&lt;/i&gt; as the union of
+ tangent spaces
+$$T(M) = \bigcup \{T_p(M) | p \in M\}$$
+However, to make the manifold valid, we still need to specify an appropriate set of charts. 
+A manifold is said to be &lt;i&gt;parallelizable&lt;/i&gt; if its tangent bundle is trivial.
+&lt;h3&gt;An Instance of a More General Phenomenon&lt;/h3&gt;
+The tangent bundle is a specific instance of a concept called the &lt;i&gt;vector bundle&lt;/i&gt;, which provides a method for constructing
+a vector space parameterized by a different sort of space such as a topological space $X$ or a manifold $M$. One of the characteristics
+of vector bundles is that they are &lt;i&gt;locally trivial&lt;/i&gt;. They are also consist of a base space $V$ and a total space $M$. The base
+space is formed as a family of vector spaces over points defined in $M$, and that family is required to be smoothly varying.
+
+The formal definition involves both a base space $B$ and a total space $E$. A tangent
+
+&lt;h3&gt;A General Instance of an Even More General Phenomenon&lt;/h3&gt;
+A vector bundle, as general as it is, is actually an instance of an even more general general phenomenon. The idea is we replace the
+&lt;i&gt;vector&lt;/i&gt; part of &lt;i&gt;vector bundle&lt;/i&gt; with a fiber of some mapping. This mapping can be anything we want, subject to a few 
+conditions. This is used to construct spaces which look locally like product spaces but from a global view have a more general
+topological structure.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;&lt;u&gt;Formal Definition&lt;/u&gt;&lt;/b&gt; A &lt;i&gt;fiber bundle&lt;/i&gt; is a tuple $(B, E, \pi, F)$ consisting of a base space $B$, a total space $E$,
+a continuous surjective projection map $\pi:E \to B$ and a fiber $F$, all satisfying the following
+&lt;/br&gt;&lt;/br&gt;
+1. For every $x \in E$, there exists an open neighborhood $U \subset B$ of $\pi(x)$ such that there exists a homeomorphism 
+$\varphi: \pi^{-1}(U) \to U \times F$
+</description>
+        <pubDate>Wed, 30 Jan 2019 00:00:00 +0100</pubDate>
+        <link>http://localhost:4000/math/2019/01/30/A-Bit-About-Manifolds.html</link>
+        <guid isPermaLink="true">http://localhost:4000/math/2019/01/30/A-Bit-About-Manifolds.html</guid>
+        
+        
+        <category>math</category>
+        
+      </item>
+    
+      <item>
+        <title>The Banach Contraction Principle</title>
+        <description>&lt;h1&gt;The Banach Contraction Principle (Banach Fixed-Point Theorem)&lt;/h1&gt;
+I wanted to write about the Banach Contraction Principle (from here out the BCP) because of
+the intuitive mathematical beauty it illustrates. It's proof is elegant, but even more than
+that, the theorem provides intuition into problems from fields diverse as ODEs and differential
+geometry.
+&lt;/br&gt;&lt;/br&gt;
+&lt;u&gt;&lt;b&gt;Theorem Statement&lt;/b&gt;&lt;/u&gt; If $X$ is a complete metric space and $T:X \to X$ is a contraction,
+then $T$ has a unique fixed point $a \in X$. Futhermore, for any $x \in X$, $a = \lim T^i (x)$.
+&lt;/br&gt;&lt;/br&gt;
+&lt;i&gt;Proof:&lt;/i&gt; Before starting, it should be noted that a map $T$ is a &lt;i&gt;contraction&lt;/i&gt; if for
+some constant $K &lt; 1$, we have $d(Tx, Ty) \leq K \dot d(x, y)$ for all $x, y \in X$.
+&lt;/br&gt;&lt;/br&gt;
+Now, to begin, fix any point $x_0 \in X$ and set $x_i = Tx_{i-1}$. Letting $\delta = d(x_0. x_1)$
+we have
+\begin{align*}
+	d(x_0, x_1) &amp;\leq d(x_0, x_1) + d(x_1, x_2) + \cdots _ d(x_{i-1}, x_i) \\
+	&amp;\leq d(x_0, x_1) + K \cdot d(x_0, 1) + K^2 d(x_0, x_1) + \cdots \\
+	&amp;= \delta(1 + K + K^2 + \cdots) \\
+	&amp;= \delta/(1-K)
+\end{align*}
+Note that for $m \geq n$, the following holds:
+$$d(x_m, x_n) \leq K \cdot d(x_{n-1}, x_{m-1}) \leq K^2 \cdot d(x_{n-2}, x_{m-2}) \leq \cdots \leq K^n \cdot d(x_0, x_{m-n}) \leq \delta K^n/(1-K)$$
+which limits to 0 since $K &lt; 1$.
+&lt;/br&gt;&lt;/br&gt;
+The key insight here is that the $\{x_i\}_{i\in \mathbb{N}}$ form a Cauchy sequence.
+Since we assumed that $X$ is complete, this sequence converges and we can assign $a = \lim_{\i \to \infty} x_i$.
+Thus $Ta = \lim T x_i = \lim x_{i+1} = a$.
+&lt;/br&gt;&lt;/br&gt;
+Now we need only show the uniqueness of $a$. Suppose $b$ was another fixed point. Then we'd have
+$$d(a, b) = d(Ta, Tb) \leq K \cdot d(a, b)$$
+And since $K &lt; 1$, we get $d(a, b) = 0$ implying that $a = b$. $\blacksquare$
+&lt;/br&gt;&lt;/br&gt;
+&lt;!-- I find the best way to intuitively visualize this theorem is as follows. Construct in your head some Cauchy sequence 
+$\{x_i\} \subset X$ in your head with the added constraint that $d(x_i, x_{i+1}) \geq d(x_j, x_{j+1})$ for all $i \leq j$.
+In other words, the distance between consecutive points in the sequence limits monotonically towards 0.   
+ --&gt;</description>
+        <pubDate>Sat, 28 Jul 2018 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/math/2018/07/28/Banach-Contraction-Principle.html</link>
+        <guid isPermaLink="true">http://localhost:4000/math/2018/07/28/Banach-Contraction-Principle.html</guid>
+        
+        
+        <category>math</category>
+        
+      </item>
+    
+      <item>
+        <title>A Tutorial on the REINFORCE (aka Monte-Carlo Policy Differentiation) Algorithm</title>
+        <description>&lt;script type=&quot;text/x-mathjax-config&quot;&gt;
+	MathJax.Hub.Config({ TeX: { extensions: [&quot;AMSmath.js&quot;]}});
+&lt;/script&gt;
+&lt;h1&gt;The REINFORCE Algorithm aka Monte-Carlo Policy Differentiation&lt;/h1&gt;
+The setup for the general reinforcement learning problem is as follows.
+We're given an environment $\mathcal{E}$ with a specified state
+space $\mathcal{S}$ and an action space $\mathcal{A}$ giving the
+allowable actions in each of those states. Each action $a_t$
+taken in a specific state $s_t$ yields a particular reward
+$r_t = r(s_t, a_t)$ based off a reward function $r$ that's in some way implicitly defined by the environment.
+
+We'd like to choose a policy $\pi$ giving a probability
+distribution of actions over states $\pi: \mathcal{S} \times
+ \mathcal{A} \to [0, 1]$. In other words, $\pi(a_t \mid s_t)$ gives the probability of taking action $a_t$ in state $s_t$.
+&lt;/br&gt;&lt;/br&gt;
+Since the whole problem of RL boils down to formulating an
+optimal policy which maximizes reward, we can define an
+objective function that explicitly quantifies how a policy
+fares in accomplishing this goal. First, we assume that we
+are using some sort of function approximator (e.g. a neural
+network) to obtain an approximation to the policy $\pi$ and
+we assume also that this approximator is governed by some set
+of parameters $\theta$. We say that the policy $\pi_\theta$ is
+&lt;i&gt;parametrized by&lt;/i&gt; $\theta$.
+&lt;/br&gt;&lt;/br&gt;
+Define our objective function $J$ by
+$$J(\theta) = \mathbb{E}_{\tau \sim p_\theta(\tau)} \left[ \sum_t r(s_t, a_t) \right]$$
+
+In shorthand, our objective function returns the expected 
+reward achieved by a given policy $\pi_\theta$ over some time
+horizon governed by $t$ (can be either finite or infinite).
+We write $\tau \sim p_\theta(\tau)$ to indicate that we're
+sampling trajectories $\tau$ from the probability distribution
+of our policy approximator governed by $\theta$. This
+distribution can be calculated by decomposing into a product of
+conditional probabilities, i.e.
+$$p_\theta(\tau) = p_\theta(s_1, a_1, \ldots, s_T, a_T) = p(s_1) \prod_{t=1}^T \pi_\theta(a_t \mid s_t) p(s_{t+1} \mid s_t, a_t)$$
+We can now specify the optimal policy $\pi^* = \pi_{\theta^*} =
+arg\,max_\theta J(\theta)$.
+&lt;/br&gt;&lt;/br&gt;
+That's all well and good, but the question becomes, how do we
+break down our objective function to something tractable. We
+need a way to accurately approximate that expectation, which
+in its exact form involves an integral over a probability
+distribution defined by our parametrized policy which we don't
+have access to. To do this, we can use something called
+&lt;b&gt;Monte-Carlo Approximation&lt;/b&gt;. The idea is simple and is
+predicated on the following fact
+$$\lim_{N \to \infty} \frac{1}{N}\sum_{i=1}^N f(x_i)_{x_i \sim p(x)} = \mathbb{E}[f(x)]$$
+Thus, if we sample $f(x_i)$, drawing $x_i$ from the probability
+distribution $p(x)$, $N$ times where $N$ is large but finite, we
+obtain a decent approximation to $\mathbb{E}[f(x)]$. Using
+Monte-Carlo approximation, we can rewrite our objective function
+as
+$$J(\theta) \approx \frac{1}{N} \sum_{i=1}^N \sum_{t} r(s_{i, t}, a_{i, t})$$
+where the $N$ samples are being directly drawn from the
+probability distribution defined by $\pi_\theta$ simply by
+running $\pi_\theta$, $N$ times.
+&lt;/br&gt;&lt;/br&gt;
+Now that we have a tractable objective function, we still need
+to determine how best to iteratively permute our $\theta$
+parameter values so as to arrive at the optimal setting 
+$\theta^*$. The simplest approach is to perform gradient ascent
+on $J(\theta)$ (since we're taking $arg\,max$ over $\theta$).
+That means it's time to take some gradients. To simplify
+notation a bit, define the reward of a trajectory $\tau$ as
+$$r(\tau) = \sum_{t} r(s_t, a_t)$$
+Then we can rewrite $J(\theta)$ as
+$$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta(\tau)}[r(\tau)]
+= \int \pi_\theta(\tau) r(\tau)\ d\tau$$
+To get our gradient ascent update formula, we take the gradient
+of $J$ with respect to $\theta$ to get
+$$\nabla_\theta J(\theta) = \int \nabla_\theta \pi_\theta(\tau)r(\tau)\ d\tau$$
+To get rid of the intractable integral, we can use a clever
+substitution. Note that
+$$\nabla_\theta \pi_\theta(\tau) = \pi_\theta 
+\frac{\nabla_\theta \pi_\theta(\tau)}{\pi_\theta(\tau)}
+= \pi_\theta(\tau) \nabla_\theta \log{\pi_\theta(\tau)}$$
+Plugging that into our expression for $\nabla_\theta J(\theta)$
+gives
+$$\nabla_\theta J(\theta) = \int \nabla_\theta \pi_\theta(\tau) r(\tau)\ d\tau = \int \pi_\theta(\tau) \nabla_\theta \log{\pi_\theta} (\tau) r(\tau)\ d\tau = \mathbb{E}_{\tau \sim \pi_\theta(\tau)} [\nabla_\theta \log{\pi_\theta(\tau)r(\tau)}]$$
+We've turned a gradient of an expectation into an expectation
+of a gradient, which is pretty cool, but we need to reduce
+things even further. Recall from before that the probability
+distribution $\pi_theta$ defines over trajectories $\tau$ is
+given as
+$$\pi_\theta(\tau = s_1, a_1, \ldots, s_T, a_T)
+= p(s_1) \prod_{t=1}^T \pi_\theta (a_t \mid s_t) p(s_{t+1} 
+\mid s_t, a_t)$$
+Taking logs of both sides breaks this down into a nice,
+convenient sum.
+$$\log \pi_\theta(\tau) = \log p(s_1) + \sum_{t} \log \left[
+\pi_\theta(a_t \mid s_t) + \log p(s_{t+1} \mid s_t, a_t) \right]$$
+Note that $\nabla_\theta \log \pi_\theta(\tau)$ is a term
+in our revised expression for $\nabla_\theta J(\theta)$ so
+we'd like to take the gradient of the previous formula and
+substitute that back in.
+\begin{align*}
+\nabla_\theta \log{\pi_\theta(\tau)} &amp;= \nabla_\theta \left[ \log{p(s_1)} + \sum_{t}
+\log{\pi_\theta(a_t \mid s_t)} + \log{p(s_{t+1} \mid s_t, a_t)} \right] \\
+ &amp;= \sum_{t} \nabla_\theta \log{\pi_\theta(a_t \mid s_t)}
+\end{align*}
+ We were able to eliminate all but the middle term because the
+others did not depend on $\theta$.
+&lt;/br&gt;&lt;/br&gt;
+Finally, we can plug this whole thing back into our expression
+for $\nabla_\theta J(\theta)$ to get
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta(\tau)}
+\left[ \left(\sum_{t} \nabla_\theta \log{\pi_\theta}(a_t \mid s_t)\right) \left(\sum_t r(s_t, a_t)\right)\right]$$
+Once again, we're left with an expectation. Like before, we
+can use Monte-Carlo Approximation to reduce this to a 
+summation over samples. This gives
+$$\nabla_\theta J(\theta) \approx \frac{1}{N} \sum_{i=1}^N \left[ \left(\sum_{t} \nabla_\theta \log{\pi_\theta}(a_{i, t} \mid s_{i,t})\right) \left(\sum_t r(s_{i,t}, a_{i,t})\right)\right]$$
+Now that we've finally reduced our expression to a usable form,
+we can update $\theta$ at each timestep according to the gradient ascent update rule
+$$\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$$
+Now that we've derived our update rule, we can present the
+pseudocode for the REINFORCE algorithm in it's entirety.
+
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;The REINFORCE Algorithm&lt;/b&gt;
+&lt;ol&gt;
+&lt;li&gt;Sample trajectories $\{\tau_i\}_{i=1}^N from \pi_{\theta}(a_t \mid s_t)$ by running the policy.
+&lt;li&gt;Set $\nabla_\theta J(\theta) = \sum_i (\sum_t \nabla_\theta \log \pi_\theta(a^i_t \mid s^i_t)) (\sum_t r(s^i_t, a^i_t))$
+&lt;li&gt;$\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$
+&lt;/ol&gt;
+And that's it. While the derivation of the gradient update
+rule was relatively complex, the three-step algorithm is
+itself conceptually simple. In upcoming tutorials, I'll
+identify how to improve the REINFORCE algorithm with strategies
+which minimize variance.</description>
+        <pubDate>Wed, 18 Apr 2018 00:00:00 +0200</pubDate>
+        <link>http://localhost:4000/math/2018/04/18/A-Tutorial-on-the-REINFORCE-Algorithm.html</link>
+        <guid isPermaLink="true">http://localhost:4000/math/2018/04/18/A-Tutorial-on-the-REINFORCE-Algorithm.html</guid>
+        
+        
+        <category>math</category>
+        
+      </item>
+    
+      <item>
+        <title>A Synopsis of DeepMind's Sobolev Training of Neural Networks</title>
+        <description>&lt;b&gt;** This tutorial is currently a work in progress **&lt;/b&gt;
+&lt;h1 align=&quot;center&quot;&gt;A Synopsis of DeepMind's Sobolev Training of Neural Networks&lt;/h1&gt;
+&lt;a href=&quot;https://arxiv.org/pdf/1706.04859.pdf&quot;&gt;Here&lt;/a&gt; is a link to the original paper so that you can follow along as you read.
+&lt;/br&gt;
+&lt;a href=&quot;http://github.com/mcneela/Sobolev&quot;&gt;Here&lt;/a&gt; is a link to the code used for the tutorial.
+&lt;/br&gt;&lt;/br&gt;
+I'll preface this tutorial by stating that despite the fancy formalisms of analysis in which this paper is dressed, at its core the main premise is quite simple: &lt;b&gt;take a neural network and achieve better results by training to not only optimize function values,
+but derivative values as well.&lt;/b&gt;
+&lt;/br&gt;&lt;/br&gt;
+That is, when training an ordinary neural network, we have a set of training data $\{x_i, f(x_i)\}_{i=1}^N$ along with a model $y_{\theta}(x)$ parametrized by weights $\theta$, and we seek to have $y_{\theta}$ match $f$ as closely as possible while achieving low generalization
+error by minimizing the training objective
+$$\sum_{i=1}^N l(y_{\theta}(x_i), f(x_i))$$
+where $l$ is a loss function such as mean-squared error or the cross-entropy loss.
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;Sobolev training&lt;/b&gt; augments this traditional paradigm by making the assumption that in addition to the training data for $f$, we
+have access to training datasets for all of $f$'s derivatives up to order $K$, i.e. we have sets $\{x_i, D^1_{\mathbf{x}}(f(x_i))\}_{i=1}^N, \ldots, \{x_i, D^K_{\mathbf{x}}(f(x_i))\}_{i=1}^N$. With this data, we seek to not only match the outputs our model $y_{\theta}$ to the sampled function values present in the training data but also match our model's derivatives to the sampled training derivatives.
+The training process is generalized in the way you would expect.
+Our training objective becomes
+$$\sum_{i=1}^N \left[ l(y_{\theta}(x_i), f(x_i)) + \sum_{j=1}^K l(D^j_{\mathbf{x}}(y_{\theta}(x_i)), D^j_{\mathbf{x}}(f(x_i)))\right]$$
+
+Of course, this is all well and good, but the natural question is &quot;how does one go about acquiring derivative samples for supervision of the Sobolev training objective?&quot;
+The authors don't really give us an answer in the general case, but they do put forth a couple of circumstances under which such training
+data might be readily available. 
+&lt;/br&gt;&lt;/br&gt;
+The first example they give pertains to those instances where the ground truth
+function is itself a neural network which the practitioner has a-priori access to. This is the case for policy distillation in
+RL, neural network compression (expressing an equivalent model
+using fewer weights), and for the prediction of synthetic gradients.
+&lt;/br&gt;&lt;/br&gt;
+They also mention that in certain online instances, even if
+access to analytic-form gradients for sampling is unavailable,
+those same gradients can be approximated using the technique of
+finite differences. More on that in a bit.
+&lt;/br&gt;&lt;/br&gt;
+&lt;h2&gt;What's a Sobolev Space and Why the Formalism?&lt;/h2&gt;
+Simply put, a Sobolev Space is a vector space where the
+vectors are functions and their derivatives with norms defined
+on them. The introduction of a norm gives us a way of quantifying the distance between any two functions or derivatives, and thus allows us to optimize functions like the
+one given as the Sobolev training objective.
+There's a lot of fancy math going on with Sobolev Spaces under
+the hood. For example, when one defines such a space, they
+normally extend the definition of differentiability to apply
+in a *weak* sense. This is done to allow for the convergence of arbitrary Cauchy sequences in order to turn the space into a &lt;b&gt;complete&lt;/b&gt; and &lt;b&gt;Banach space&lt;/b&gt;. Those are both functional analytic notions, and if you'd like a primer on the
+underlying math, I encourage you to consult my notes on functional analysis on this blog.
+&lt;/br&gt;&lt;/br&gt;
+In order to make things crystal clear, I'll quickly introduce the natural norm induced on a Sobolev space. 
+&lt;/br&gt;&lt;/br&gt;
+&lt;b&gt;Definition:&lt;/b&gt; A (one-dimensional) Sobolev space $W^{k,p}$ is the subset of functions $f$ in $L^p(\mathbb{R})$ such that
+$f$ and its weak derivatives up to some order $k$ have a finite $L^p$ norm for given $p (1 \leq p \leq \infty)$.
+&lt;/br&gt;&lt;/br&gt;
+With that, the norm on $f$ is defined as
+$$\| f \|_{k, p} = \left(\sum_{i=0}^k \| f^{(i)}\|_p^p\right)^{\frac{1}{p}} = \left( \sum_{i=0}^k \int |f^{(i)}(t)|^p \ dt\right)^{\frac{1}{p}}$$
+</description>
+        <pubDate>Mon, 19 Feb 2018 00:00:00 +0100</pubDate>
+        <link>http://localhost:4000/machine_learning/2018/02/19/A-Synopsis-Of-DeepMinds-Sobolev-Training-Of-Neural-Networks.html</link>
+        <guid isPermaLink="true">http://localhost:4000/machine_learning/2018/02/19/A-Synopsis-Of-DeepMinds-Sobolev-Training-Of-Neural-Networks.html</guid>
+        
+        
+        <category>machine_learning</category>
+        
+      </item>
+    
+  </channel>
+</rss>

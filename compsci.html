@@ -1,0 +1,9 @@
+---
+layout: home_page
+sidebar: false
+---
+
+<!-- Computer Science Posts -->
+{% for post in site.categories.compsci %}
+    {% include post.html target_post=post %}
+{% endfor %}

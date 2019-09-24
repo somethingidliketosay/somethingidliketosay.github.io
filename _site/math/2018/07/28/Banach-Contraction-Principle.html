@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-4500061645003550",
+            enable_page_level_ads: true
+          });
+        </script>
+                <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111761861-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-111761861-1');
+        </script>
+        <title>The Banach Contraction Principle</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+        <link rel="stylesheet" href="/assets/css/main.css" />
+        <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+        <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<link rel="alternate" type="application/rss+xml" title="mcneela.github.io RSS Feed" href="/feed.xml" />
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+    </head>
+    <body>
+    <!-- Wrapper -->
+        <div id="wrapper">
+
+            <!-- Header -->
+            <!-- Header -->
+<header id="header">
+    <h1><a href="/index.html">Daniel McNeela</a></h1>
+    <nav class="links">
+        <ul>
+            <li><a href="/about.html">About Me</a></li>
+            <li><a href="/resume/website_resume.pdf">Resume</a></li>
+            <li><a href="/portfolio.html">Portfolio</a></li>
+            <li><a href="/machinelearning.html">Machine Learning</a></li>
+            <li><a href="/math.html">Mathematics</a></li>
+            <!-- <li><a href="/bioinfo.html">Bioinformatics</a></li> -->
+            <li><a href="/consulting.html">Consulting</a></li>
+            <li><a href="/books.html">Books</a></li>
+            <!-- <li><a href="/literature.html">Literature</a></li> -->
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="/search/">
+                    <input type="text" name="q" placeholder="Search"/>
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+
+            <!-- Menu -->
+            <section id="menu">
+    <!-- Search -->
+        <section>
+            <form class="search" method="get" action="#">
+                <input type="text" name="query" placeholder="Search" />
+            </form>
+        </section>
+
+    <!-- Links -->
+        <section>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <h3>Home</h3>
+                        <p>Return to the homepage</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="resume/website_resume.pdf">
+                        <h3>Resume</h3>
+                        <p>PDF version of my resume</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="portfolio.html">
+                        <h3>Portfolio</h3>
+                        <p>My coding portfolio</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="math.html">
+                        <h3>Mathematics</h3>
+                        <p>Posts about mathematics</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="machinelearning.html">
+                        <h3>Machine Learning</h3>
+                        <p>Posts about machine learning</p>
+                    </a>
+               </li>
+			   <!--
+               <li>
+                   <a href="literature.html">
+                       <h3>Literature</h3>
+                       <p>My reading feed</p>
+                    </a>
+               </li>
+			   -->
+            </ul>
+        </section>
+</section>
+
+
+
+                <!-- Main -->
+            <div id="main">
+
+            <h1>The Banach Contraction Principle (Banach Fixed-Point Theorem)</h1>
+I wanted to write about the Banach Contraction Principle (from here out the BCP) because of
+the intuitive mathematical beauty it illustrates. It's proof is elegant, but even more than
+that, the theorem provides intuition into problems from fields diverse as ODEs and differential
+geometry.
+</br></br>
+<u><b>Theorem Statement</b></u> If $X$ is a complete metric space and $T:X \to X$ is a contraction,
+then $T$ has a unique fixed point $a \in X$. Futhermore, for any $x \in X$, $a = \lim T^i (x)$.
+</br></br>
+<i>Proof:</i> Before starting, it should be noted that a map $T$ is a <i>contraction</i> if for
+some constant $K < 1$, we have $d(Tx, Ty) \leq K \dot d(x, y)$ for all $x, y \in X$.
+</br></br>
+Now, to begin, fix any point $x_0 \in X$ and set $x_i = Tx_{i-1}$. Letting $\delta = d(x_0. x_1)$
+we have
+\begin{align*}
+	d(x_0, x_1) &\leq d(x_0, x_1) + d(x_1, x_2) + \cdots _ d(x_{i-1}, x_i) \\
+	&\leq d(x_0, x_1) + K \cdot d(x_0, 1) + K^2 d(x_0, x_1) + \cdots \\
+	&= \delta(1 + K + K^2 + \cdots) \\
+	&= \delta/(1-K)
+\end{align*}
+Note that for $m \geq n$, the following holds:
+$$d(x_m, x_n) \leq K \cdot d(x_{n-1}, x_{m-1}) \leq K^2 \cdot d(x_{n-2}, x_{m-2}) \leq \cdots \leq K^n \cdot d(x_0, x_{m-n}) \leq \delta K^n/(1-K)$$
+which limits to 0 since $K < 1$.
+</br></br>
+The key insight here is that the $\{x_i\}_{i\in \mathbb{N}}$ form a Cauchy sequence.
+Since we assumed that $X$ is complete, this sequence converges and we can assign $a = \lim_{\i \to \infty} x_i$.
+Thus $Ta = \lim T x_i = \lim x_{i+1} = a$.
+</br></br>
+Now we need only show the uniqueness of $a$. Suppose $b$ was another fixed point. Then we'd have
+$$d(a, b) = d(Ta, Tb) \leq K \cdot d(a, b)$$
+And since $K < 1$, we get $d(a, b) = 0$ implying that $a = b$. $\blacksquare$
+</br></br>
+<!-- I find the best way to intuitively visualize this theorem is as follows. Construct in your head some Cauchy sequence 
+$\{x_i\} \subset X$ in your head with the added constraint that $d(x_i, x_{i+1}) \geq d(x_j, x_{j+1})$ for all $i \leq j$.
+In other words, the distance between consecutive points in the sequence limits monotonically towards 0.   
+ -->
+
+            </div>
+
+            
+
+        </div>
+
+		<!-- Scripts -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/skel.min.js"></script>
+        <script src="assets/js/util.js"></script>
+        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <script src="assets/js/main.js"></script>
+        <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+        <!-- <script type="text/javascript" async src="path-to-mathjax/MathJax.js?config=TeX-AMS_CHTML"></script> -->
+    </body>
+</html>

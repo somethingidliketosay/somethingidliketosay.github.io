@@ -1,0 +1,15 @@
+---
+layout: home_page
+sidebar: true
+---
+
+<!-- Post -->
+{% for post in site.posts limit: 2 %}
+    {% include post.html target_post=post %}
+{% endfor %}
+<!-- Pagination -->
+<!--
+<ul class="actions pagination">
+    <li><a href="more_posts.html" class="button big next">More</a></li>
+</ul>
+-->

@@ -1,0 +1,96 @@
+I"�%<p>Often in mathematics, it is useful to be able to compute an approximation to a given function <script type="math/tex">f(x)</script>.
+One way of doing this is to find some <script type="math/tex">a</script> for which <script type="math/tex">f(x)</script> is easy to compute. We can then calculate
+the approximate value of <script type="math/tex">f(x)</script> when <script type="math/tex">x</script> is near <script type="math/tex">a</script>. We will call this approximation <script type="math/tex">f_{a}(x)</script>.
+More concretely, we might say <script type="math/tex">x</script> <em>is near</em> <script type="math/tex">a</script> when <script type="math/tex">% <![CDATA[
+\left|x - a\right| < \varepsilon %]]></script> for some 
+threshold value of <script type="math/tex">\varepsilon</script> our choosing. One way of settling upon such an <script type="math/tex">\varepsilon</script> might be
+by determining an acceptable upper bound <script type="math/tex">U</script> on the error of our approximation <script type="math/tex">\left|f(x) - f_{a}(x)\right|</script> and
+then finding the greatest <script type="math/tex">\varepsilon</script> such that: 
+\[\left|f(x) - f_{a}(x)\right| &lt; U \quad \forall x \in (a - \varepsilon,\ a + \varepsilon)\]
+<!--more-->
+The simplest such approximation is called the <em>tangent line approximation</em> and is given by:
+	\[f_{a}(x) = f(a) + f’(a)(x - a)\] 
+Let’s try to understand intuitively what this approximation is computing. We start by calculating
+<script type="math/tex">f(a)</script>, so you can visualize the initial approximation as a point resting on the graph of
+<script type="math/tex">f(x)</script> at the point <script type="math/tex">x = a</script>. This approximation is acceptable only for values of <script type="math/tex">x</script> that
+lie exceedingly close to <script type="math/tex">a</script>. To improve the approximation, we then calculate <script type="math/tex">x - a</script>.
+Note that if <script type="math/tex">% <![CDATA[
+x < a %]]></script> then <script type="math/tex">% <![CDATA[
+x - a < 0 %]]></script>. Conversely, if <script type="math/tex">x > a</script> then <script type="math/tex">x - a > 0</script>. The
+sign of <script type="math/tex">x - a</script> tells us the direction we will be moving along the tangent line to
+<script type="math/tex">f(x)</script> at the point <script type="math/tex">x = a</script>. If <script type="math/tex">x - a</script> is negative we will move to the left of <script type="math/tex">a</script>,
+and if <script type="math/tex">x - a</script> is positive we will move to the right. Now we calculate the value of
+<script type="math/tex">f'(a)</script>. Recall that <script type="math/tex">f'(a)</script> is the slope of the tangent line to the graph of <script type="math/tex">f(x)</script>
+at the point <script type="math/tex">x = a</script>. Remember too that a slope <script type="math/tex">m</script> is defined as <script type="math/tex">\frac{\text{rise}}{\text{run}}</script>.
+Therefore, when we multiply <script type="math/tex">f'(a)(x-a)</script> conceptually we are multiplying our \textit{run} (<script type="math/tex">x - a</script>)
+by <script type="math/tex">\frac{\text{rise}}{\text{run}}</script> (<script type="math/tex">f'(a)</script>). The runs will cancel out in the multiplication
+leaving us with a rise, i.e. <script type="math/tex">f_{a}(x) - f(a)</script>. We add <script type="math/tex">f(a)</script> to this expression to obtain
+our final approximation <script type="math/tex">f_{a}(x)</script>.
+<br />
+<br />
+<strong>Example:</strong>  Let <script type="math/tex">f(x) = x^4 + 4x^3 + 2x^2 - x + 1</script>, and suppose we want to approximate <script type="math/tex">f</script> near <script type="math/tex">x = 1</script>.
+To compute our approximation, we will need to know <script type="math/tex">f'(x)</script> so let’s calculate that.
+\[f’(x) = 4x^3 + 12x^2 + 4x - 1\]
+Now we can compute our approximation. We have:
+\begin{align}
+	\begin{split}
+		f_{1}(x) &amp; = f(1) + f’(1)(x - 1) <br />
+		&amp; = 7 + 19(x - 1) <br />
+		&amp; = 19x - 12
+	\end{split}
+\end{align}
+ Notice that this is exactly the equation of the tangent line to <script type="math/tex">f(x)</script> at <script type="math/tex">x = 1</script>.
+<br />
+now, we need to find the interval <script type="math/tex">(a - \varepsilon,\ a + \varepsilon)</script> such that for <script type="math/tex">x \in (a - \varepsilon,\ a + \varepsilon)</script> we have:
+	\[\left|f(x) - f_{1}(x)\right| = 0.1\]
+So we solve for <script type="math/tex">x</script> as follows:
+\begin{align}
+	\begin{split}
+		x^4 + 4x^3 + 2x^2 - x + 1 - 19x + 12 &amp;= 0.1 <br />
+		x^4 + 4x^3 + 2x^2 - 20x + 12.9 &amp;= 0
+	\end{split}
+\end{align}
+This quartic would be quite difficult to solve by hand, so we utilize the help of a computational
+mathematics software package such as Matlab to calculate the zeros. We find that <script type="math/tex">x = 0.928262</script> or
+<script type="math/tex">x = 1.06974</script>. Now, keep in mind that these <script type="math/tex">x</script>-values that we found represent the endpoints of our interval <script type="math/tex">(a - \varepsilon,\ a + \varepsilon)</script>. Since <script type="math/tex">a = 1</script>, we find that <script type="math/tex">\varepsilon = .06974</script> or <script type="math/tex">\varepsilon = .071738</script>. We want <script type="math/tex">\varepsilon</script> to equal the minimum of these two values in order to ensure that we stay within our error bound to both the left and right of <script type="math/tex">a</script>. Therefore, we have <script type="math/tex">\varepsilon = .06974</script> and the interval in which our approximation falls within <script type="math/tex">0.1</script> of the actual value of <script type="math/tex">f(x)</script> is <script type="math/tex">(0.93026,\ 1.069745)</script>.
+<br />
+<br />
+There are a few observations we should make regarding this example. First, note how small the
+interval is in which our approximation is accurate to within <script type="math/tex">0.1</script> of <script type="math/tex">f(x)</script>. Why is this?
+Well, there are a few reasons. First off, the tangent line approximation is not, in general, a 
+very accurate approximation of the global behavior of <script type="math/tex">f</script>.
+This is because the tangent line approximates based on the value of the slope at the point <script type="math/tex">x = a</script>,
+and for most functions the actual graph of <script type="math/tex">f(x)</script> stays close to the tangent line at <script type="math/tex">a</script> for only
+a very short time before curving away. Of course, this is not true universally, for if <script type="math/tex">f(x)</script>
+is of the form <script type="math/tex">mx+b</script> then, in fact, we have:
+	\[f_{a}(x) = f(x) \quad \forall x \in \mathbb{R}\]</p>
+
+<p>The foregoing analysis of our approximation begs the following question: 
+<em>How can we quantify the rate at which <script type="math/tex">f(x)</script> curves away from it’s tangent line approximation
+	at any given point?</em>
+The answer is that we can use <script type="math/tex">f''(x)</script> to calculate the rate at which our function
+deviates from it’s tangent line approximation. For more general curves, the concept
+of <em>curvature</em> from differential geometry is used. More on this later.
+<br />
+<br />
+Now that we know we can approximate a function using it’s derivative, we might begin to wonder
+whether it would be possible to increase the accuracy of such an approximation by incorporating
+the use of higher degree derivatives of <script type="math/tex">f</script>. Indeed, one might postulate that for a function
+having <script type="math/tex">n</script> derivatives a function <script type="math/tex">g</script> exists for which <script type="math/tex">f^{(i)}(x) = g^{(i)}(x) \quad \forall i \ \text{such that} \ 0 \leq i \leq n</script>.
+Indeed, for any function <script type="math/tex">f(x)</script>, such a function <script type="math/tex">g</script> exists called the <script type="math/tex">n</script>-th degree Taylor Polynomial.
+<br />
+<br />
+The <script type="math/tex">n</script>-th degree Taylor Polynomial centered at <script type="math/tex">a</script>, designated <script type="math/tex">P_{n}(x)</script>, is given by:</p>
+
+<p>\[P_{n}(x) = \sum_{i = 0}^n \frac{f^{(i)}(x)}{i!}(x-a)^i\]
+Note first that in the case where <script type="math/tex">n = 1</script> the Taylor polynomial <script type="math/tex">P_{1}(x)</script> reduces to the tangent line
+approximation <script type="math/tex">f_a(x)</script>. As previously mentioned, one of the problems with this approximation is that it
+does a rather poor job of representing our function’s curvature on anything but a small interval. One
+might then reason that a quadratic function might better approximate the value of <script type="math/tex">f(x)</script> for a wider
+range of values. This is indeed the case, and such an approximating quadratic is given by <script type="math/tex">P_2(x)</script>.
+Similarly, the cubic approximation given by <script type="math/tex">P_3(x)</script> provides an incremental improvement over the quadratic,
+the quartic, <script type="math/tex">P_4(x)</script>, gives greater accuracy than the cubic, and so on and so forth. Let’s try to approximate
+the function given in our tangent approximation example using a Taylor polynomial.</p>
+
+<p><strong>Example:</strong>  Let <script type="math/tex">f(x) = x^4 + 4x^3 + 2x^2 - x + 1</script>, and suppose we want to approximate <script type="math/tex">f</script> near <script type="math/tex">x = 1</script>.</p>
+:ET

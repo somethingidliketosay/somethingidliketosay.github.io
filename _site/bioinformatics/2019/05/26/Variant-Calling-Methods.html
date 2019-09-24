@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-4500061645003550",
+            enable_page_level_ads: true
+          });
+        </script>
+                <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111761861-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-111761861-1');
+        </script>
+        <title>The Variant Calling Problem</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+        <link rel="stylesheet" href="/assets/css/main.css" />
+        <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+        <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+		<link rel="alternate" type="application/rss+xml" title="mcneela.github.io RSS Feed" href="/feed.xml" />
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+    </head>
+    <body>
+    <!-- Wrapper -->
+        <div id="wrapper">
+
+            <!-- Header -->
+            <!-- Header -->
+<header id="header">
+    <h1><a href="/index.html">Daniel McNeela</a></h1>
+    <nav class="links">
+        <ul>
+            <li><a href="/about.html">About Me</a></li>
+            <li><a href="/resume/website_resume.pdf">Resume</a></li>
+            <li><a href="/portfolio.html">Portfolio</a></li>
+            <li><a href="/machinelearning.html">Machine Learning</a></li>
+            <li><a href="/math.html">Mathematics</a></li>
+            <!-- <li><a href="/bioinfo.html">Bioinformatics</a></li> -->
+            <li><a href="/consulting.html">Consulting</a></li>
+            <li><a href="/books.html">Books</a></li>
+            <!-- <li><a href="/literature.html">Literature</a></li> -->
+        </ul>
+    </nav>
+    <nav class="main">
+        <ul>
+            <li class="search">
+                <a class="fa-search" href="#search">Search</a>
+                <form id="search" method="get" action="/search/">
+                    <input type="text" name="q" placeholder="Search"/>
+                </form>
+            </li>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+
+            <!-- Menu -->
+            <section id="menu">
+    <!-- Search -->
+        <section>
+            <form class="search" method="get" action="#">
+                <input type="text" name="query" placeholder="Search" />
+            </form>
+        </section>
+
+    <!-- Links -->
+        <section>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <h3>Home</h3>
+                        <p>Return to the homepage</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="resume/website_resume.pdf">
+                        <h3>Resume</h3>
+                        <p>PDF version of my resume</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="portfolio.html">
+                        <h3>Portfolio</h3>
+                        <p>My coding portfolio</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="math.html">
+                        <h3>Mathematics</h3>
+                        <p>Posts about mathematics</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="machinelearning.html">
+                        <h3>Machine Learning</h3>
+                        <p>Posts about machine learning</p>
+                    </a>
+               </li>
+			   <!--
+               <li>
+                   <a href="literature.html">
+                       <h3>Literature</h3>
+                       <p>My reading feed</p>
+                    </a>
+               </li>
+			   -->
+            </ul>
+        </section>
+</section>
+
+
+
+                <!-- Main -->
+            <div id="main">
+
+            <h1>The Variant Calling Problem</h1>
+In bioinformatics, particularly in the subfield of oncology in which I work, we're often tasked with the issue of identifying variants
+in a genomic sequence. What this means is that we have a sample sequence along with a <i>reference sequence</i>, and we want to identify
+regions where the sample differs from the reference. These regions are called <i>variants</i>, and they can often be clinically 
+relevant, potentially indicating an oncogenic mutation or some
+other telling clinical marker.
+</br></br>
+In general, there are two types of variant calling that one may be interested in performing. The first of these is called
+<i>germline variant calling</i>. In this type, we use a reference genome that is an accepted standard for the species in
+question. There exists more than one acceptable choice for a reference genome, but one of the current standards for humans
+is called <i>GRCh38</i>. This stands for <i>Genome Reference Consortium human</i> and 38 is an identifying version number.
+Note the <i>h</i> is used to distinguish the human genome from other genomes that the GRC puts out such as <i>GRCm</i>
+(mouse genome).
+</br></br>
+The second type is called <i>somatic variant calling</i>. This
+method uses two samples from a single individual and compares
+the sequence of one with the other. In effect, the patients own
+genome serves as the reference. This is the method commonly used
+in oncology, as one sample can be taken from a tumor and another
+from some non-mutated cell such as the bloodline. This process
+is also sometimes called a <i>tumor-normal</i> study due to the
+fact that one sample is taken from the tumor and one from a 
+normal cell.
+</br></br>
+There are a few additional things to note in the discussion 
+above. The first is that in germline calling we're uncovering
+variants that are being <i>passed from parent to child</i> via
+the germ cells, i.e. the sperm and eggs. In somatic calling,
+we're identifying somatic mutations and variants, those that
+occur within the body over the course of a lifetime, whether
+they are due to environmental factors, errors in DNA
+ transcription and translation, or some other factor.
+</br></br>
+<h2>Types of Variants</h2>
+In order to identify variants, it will be helpful to develop
+an ontology of some of the specific classes and types of
+variants we might expect to see as the output of our variant
+callers.
+</br></br>
+<b>Indel</b> - This is one of the simplest types of variant
+to describe conceptually, but also one of the most difficult
+to identify via current variant calling methods. An <i>indel</i>
+is either an insertion or deletion of a single base at some
+point in the DNA sequence. The reason these are difficult to
+identify is that since it is not known in advance at which
+point in the DNA the variant occurs, it can throw off the
+alignment with the reference sequence.
+</br></br>
+<b>SNP</b> - This is short for <i>single nucleotide polymorphism
+</i> and it refers to a population-level variant in which a
+single base differs between the sample and reference sequences.
+By population-level, we mean that this variant is extremely
+common across specific populations. For example, an SNP might
+occur when comparing the genomes of Caucasian and Chinese people
+within a gene coding for skin tone.
+</br></br>
+<b>SNV</b> - This stands for <i>single-nucleotide variant</i>
+and is the same as an SNP apart from the fact that it indicates
+a novel mutation present in the genomes of a few rather than
+being widespread across a population.
+</br></br>
+<b>Structural Variant</b> - A <i>structural variant</i> refers
+to a larger-scale variant in the genome, typically occupying at
+least 1000 base pairs. These can exhibit a number of different
+behaviors. For example, a >1kb region of the DNA can be 
+duplicated and reinserted or it can be deleted. These types of
+structural variation are commonly referred to as
+<i>copy number variants (CNVs)</i>. A partial sequence can also
+be reversed (called <i>inversion</i>). This image sums it up
+well
+<div align="middle">
+	<img src="/images/structural_variation.png"></img>
+</div>
+<!-- <p align="middle"><i>(Credit: The European Bioinformatics Institute)</i></p> -->
+<h2>Haplotype Phasing</h2>
+Before getting into the nitty gritty of variant calling, it will be helpful to describe a related process called
+<i>haplotype phasing</i>. A <i>haplotype</i> is the set of genetic information associated with a single chromosome.
+The human genome is <i>diploid</i>, meaning it consists of pairs of chromosomes for which each has one part of its genetic information
+inherited from the mother and the other part from the father. The combined genetic information resulting from considering these
+pairs of chromosomes as single units is called the <i>genotype</i>. However, having access to the haplotype can be crucial because
+it can provide information crucial to identifying disease-causing variants (either SNPs or SNVs) in the genome. The issue is that
+current sequencing methods don't give us haplotype information for free as often the reads produced cannot be separated into
+their individual male and female loci. Therefore, we need to use statistical algorithms to piece together what we can about the
+haplotype sequences after the fact. This is where haplotype phasing comes into play.
+</br></br>
+<h3>Some Preliminaries and Associated Challenges</h3>
+To start with, we need to establish some background with regards to population-level frequencies of genetic variation so that we
+can begin to detect deviations from that standard. What may be surprising is that while the human genome is diploid, it varies
+from the reference at approximately 0.1% of the bases. That means that between any two individuals, we should expect to see at
+least 99.9% shared genetic information. It is at the remaining 0.1% of sites that we direct our attention when we're looking to
+tease out the haplotypes. For reference, the condition of sharing genetic information is often called <i>homology</i>.
+</br></br>
+The teasing out of haplotypes is complicated by the fact that at times genetic information is passed from parent to child in a
+process known as <i>recombination</i>. Recombination happens when instead of passing down just one chromosome from its diploid
+pair, a parent passes down a combination of the two. At the biological level, this process occurs during <i>meiosis</i>. The
+first phase of meiosis involves an alignment of homologous chromosome pairs between the mother and father. This process involves
+a stage in which the chromosomal arms temporarily overlap, causing a crossover which may (or may not) result in fusion at that
+locus at which the point of crossover occurs. This results in a recombination of genetic information which is then passed down
+to the child. One benefit to this process is that it encourages genetic diversity, creating genetic patterns in the child that
+appeared in neither parent. Unfortunately, it also makes haplotype phasing that much more difficult.
+</br></br>
+DNA sequencing gives partial haplotype information. It produces sequencing <i>reads</i> which are partial strings of the sequence up to
+1000 base pairs. These reads all come from the same chromosome, but they represent only a small slice of the haplotype because the
+entire chromosome is on the order of 50 million to 250 million base pairs.
+</br></br>
+<h3>Advantages of Knowing the Haplotype</h3>
+Hopefully it's clear that having access to the haplotype for any given individual is strictly superior to simply having the genotype.
+This is because, given access to a person's haplotype, we can simply combine that information in a procedural way to yield their
+genotype. The same cannot be said of the reverse. What's more, having the haplotype allows us to compute statistics about various
+biological properties that would otherwise be unavailable to use. For example, if we have haplotypes for a series of individuals
+in a population, we can check at which loci recombination is most likely to occur, what the frequency of that recombination is, etc.
+It suffices to say that having access to the haplotype is highly advantageous as a downstream input to variant calling methods, and
+I'll examine some such methods that make use of this information in upcoming posts.
+</br></br>
+<h2>The DeepVariant Caller</h2>
+Now that we have an understanding of haplotypes and some of the different ways in which variants might arise, I'd like to introduce
+one of the most successful models for variant calling created to-date: Google's <i>DeepVariant</i>. This model is one of the simplest
+to introduce in that it uses virtually no specialized knowledge of genomics in terms of encoding input features. Surprisingly, this
+has no detrimental effect on its accuracy, as it outperformed virtually every other variant caller on the market at the time of its
+release. The approach it uses is somewhat novel so I'll introduce that here, and I'll compare it in subsequent posts with the 
+methodology behind other variant callers.
+</br></br>
+<h3>How it Works</h3>
+<i>DeepVariant</i> is unique in that it doesn't operate on the textual sequence information of the aligned and reference genomic reads.
+Rather, it creates something called a <i>pileup image</i> from the alignment information. A pileup image shows the sequenced reads from
+the sample aligned with the reference. Each base is assigned an RGB color, and possible variants within the reads as compared to the
+reference are highlighted accordingly. Here's an example of what a pileup looks like.
+<div align="middle">
+	<img src="/images/pileup.jpg" width="90%"></img>
+</div>
+<!-- <p align="middle"><i>(Credit: Melbourne Bioinformatics)</i></p> -->
+The DeepVariant model is trained on a large dataset of such images in which variants have already been labeled. It can then be applied
+to new alignments and samples by generating their pileup using a program such as SAMTOOLS. Here's how the authors from Google
+structured their model.
+<div align="middle">
+	<img src="/images/deepvariant.png" width=""></img>
+</div>
+As you can see from the diagram, their workflow proceeds as follows:
+<ol>
+	<li>Identifying Candidate Variants and Generating Pileup: Candidate variants are identified according to a simple procedure. The
+		reads are aligned to the reference, and in each case the CIGAR string for the read is generated. Based on how that read 
+		compares to the reference at the point which it is aligned, it is classified as either a match, an SNV, an insertion, or a
+		deletion. If the number of reads which differ at that base pass a pre-defined threshold, then that site is identified as a
+		potential variant. The authors also apply some preprocessing to ensure that the reads under consideration are of high enough
+		quality and are aligned properly in order to be considered. After candidate variants have been identified, the pileup image is 
+		generated. The notable points here are that candidate variants are colored and areas with excessive coverage are downsampled
+	prior to image generation.</li>
+	<li>The model is trained on the data, then run during inference stages. They use a CNN, specifically the Inception v2 architecture,
+		which takes in a 299x299 input pileup image and uses an output softmax layer to classify into one of hom-ref, het, or hom-alt.
+		They use SGD to train with a batch size of 32 and RMS decay set to 0.9. They initialize the CNN to using the weights from one
+		of the ImageNet models.</li>
+</ol>
+The authors find that their model generalizes well, and can be used with no statistically significant loss in accuracy on reads aligned
+to a reference different from the one on which <i>DeepVariant</i> was trained. They also stumble upon another surprising result, namely
+that their model successfully calls variants on the mouse genome, opening up the model's to a wide diversity of species. 
+</br></br>
+<h2>Conclusion</h2>
+I hope this post shed some light on how variant calling works and elucidates the biological underpinnings of the process well enough
+for newcomers to the field to start diving into some papers. In future posts, I'll expand on some of the other popular variant calling
+models as well as introduce algorithms for related processes, such as the haplotype phasing discussed earlier.
+
+
+            </div>
+
+            
+
+        </div>
+
+		<!-- Scripts -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/skel.min.js"></script>
+        <script src="assets/js/util.js"></script>
+        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <script src="assets/js/main.js"></script>
+        <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+        <!-- <script type="text/javascript" async src="path-to-mathjax/MathJax.js?config=TeX-AMS_CHTML"></script> -->
+    </body>
+</html>

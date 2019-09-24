@@ -1,0 +1,19 @@
+I"«<p><strong>Exercise 1:</strong> <em>If <script type="math/tex">r</script> is rational (<script type="math/tex">r \neq 0</script>) and <script type="math/tex">x</script> is irrational,
+prove that <script type="math/tex">r + x</script> and <script type="math/tex">rx</script> are irrational.</em></p>
+
+<p>Suppose <script type="math/tex">r \in \mathbb{Q}</script> and <script type="math/tex">x \in \mathbb{I}</script> but <script type="math/tex">r+x,\ rx \in \mathbb{Q}</script>.
+Then we have <script type="math/tex">r +x = \frac{a}{b}</script> for some <script type="math/tex">a,b \in \mathbb{Z}</script>. This
+implies that <script type="math/tex">x = \frac{a}{b} - r</script>. Since <script type="math/tex">r \in \mathbb{Q}</script>, <script type="math/tex">r = \frac{c}{d}</script>
+for some <script type="math/tex">c, d \in \mathbb{Z}</script>. Therefore
+	\[x = \frac{a}{b} - \frac{c}{d} = \frac{ad-bc}{bd}\]
+which implies <script type="math/tex">x \in \mathbb{Q}</script>: a contradiction. Therefore, <script type="math/tex">r + x</script> is irrational.
+Now, consider <script type="math/tex">rx</script>. If <script type="math/tex">rx \in \mathbb{Q}</script>, then</p>
+
+<p>\begin{align}
+	rx &amp;= \frac{a}{b}\ \text{for}\ a,b \in \mathbb{Z} <br />
+	\implies x &amp;= \frac{a}{b} \cdot \frac{d}{c} <br />
+	\implies x &amp;\in \mathbb{Q}
+\end{align}</p>
+
+<p>which is a contradiction. Therefore, <script type="math/tex">rx</script> is irrational.</p>
+:ET
